@@ -1,0 +1,100 @@
+@import 'tailwindcss';
+
+/* ─────────────────────────────────────────────────────────────────────
+   Дизайн-токени. Єдине джерело правди для кольорів, шрифтів і радіусів.
+   Значення перенесені з :root прототипу scint-rfq-prototype-v4.9.html.
+   ───────────────────────────────────────────────────────────────────── */
+@theme {
+  --color-bg: #f7f7f8;
+  --color-line: #e5e7eb;
+  --color-line2: #eef0f2;
+  --color-sel: #f3f4f6;
+  --color-focus-row: #fffbeb;
+
+  --color-ink: #111827;
+  --color-ink2: #4b5563;
+  --color-ink3: #6b7280;
+  --color-ink4: #9ca3af;
+
+  --color-ok: #0e7c66;
+  --color-ok-soft: #e3f4ef;
+  --color-warn: #a16207;
+  --color-warn-soft: #fef3c7;
+  --color-bad: #b91c1c;
+  --color-bad-soft: #fee2e2;
+  --color-sup: #1d4ed8;
+  --color-sup-soft: #e0e7ff;
+  --color-ns: #6d28d9;
+  --color-ns-soft: #ede9fe;
+  --color-info: #c2410c;
+  --color-info-soft: #fff7ed;
+  --color-info-line: #fed7aa;
+  --color-amber: #eab308;
+
+  /* Сходинки шкали completion / on-time % */
+  --color-scale-90: #dcfce7;
+  --color-scale-75: #ecfccb;
+  --color-scale-60: #fef9c3;
+  --color-scale-40: #ffedd5;
+  --color-scale-0: #fee2e2;
+
+  --font-sans:
+    'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  --radius-card: 12px;
+}
+
+@layer base {
+  /*
+   * Кореневий розмір лишається типовим (16px): утиліти Tailwind рахуються в rem,
+   * і будь-яке його зменшення масштабувало б усі відступи та розміри відносно
+   * значень у px, якими заданий макет. Базовий текст 14px задається на body.
+   */
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    line-height: 1.4;
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 1px;
+  }
+
+  input[type='checkbox'],
+  input[type='radio'] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--color-ink);
+    cursor: pointer;
+  }
+}
+
+@layer utilities {
+  /* Обрізання опису до двох рядків — використовується в клітинках таблиць. */
+  .line-clamp-2-box {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+}
