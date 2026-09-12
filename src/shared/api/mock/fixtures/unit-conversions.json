@@ -1,0 +1,172 @@
+[
+  {
+    "from": "m",
+    "to": "cm",
+    "factor": 100
+  },
+  {
+    "from": "cm",
+    "to": "m",
+    "factor": 0.01
+  },
+  {
+    "from": "m",
+    "to": "mm",
+    "factor": 1000
+  },
+  {
+    "from": "mm",
+    "to": "m",
+    "factor": 0.001
+  },
+  {
+    "from": "kg",
+    "to": "g",
+    "factor": 1000
+  },
+  {
+    "from": "g",
+    "to": "kg",
+    "factor": 0.001
+  },
+  {
+    "from": "t",
+    "to": "kg",
+    "factor": 1000
+  },
+  {
+    "from": "kg",
+    "to": "t",
+    "factor": 0.001
+  },
+  {
+    "from": "ton",
+    "to": "kg",
+    "factor": 1000
+  },
+  {
+    "from": "tons",
+    "to": "kg",
+    "factor": 1000
+  },
+  {
+    "from": "l",
+    "to": "ml",
+    "factor": 1000
+  },
+  {
+    "from": "ml",
+    "to": "l",
+    "factor": 0.001
+  },
+  {
+    "from": "ltr",
+    "to": "l",
+    "factor": 1
+  },
+  {
+    "from": "ltrs",
+    "to": "l",
+    "factor": 1
+  },
+  {
+    "from": "litre",
+    "to": "l",
+    "factor": 1
+  },
+  {
+    "from": "litres",
+    "to": "l",
+    "factor": 1
+  },
+  {
+    "from": "lt",
+    "to": "l",
+    "factor": 1
+  },
+  {
+    "from": "mtr",
+    "to": "m",
+    "factor": 1
+  },
+  {
+    "from": "mtrs",
+    "to": "m",
+    "factor": 1
+  },
+  {
+    "from": "meter",
+    "to": "m",
+    "factor": 1
+  },
+  {
+    "from": "meters",
+    "to": "m",
+    "factor": 1
+  },
+  {
+    "from": "metre",
+    "to": "m",
+    "factor": 1
+  },
+  {
+    "from": "pcs",
+    "to": "ea",
+    "factor": 1
+  },
+  {
+    "from": "ea",
+    "to": "pcs",
+    "factor": 1
+  },
+  {
+    "from": "pcs",
+    "to": "pc",
+    "factor": 1
+  },
+  {
+    "from": "pc",
+    "to": "pcs",
+    "factor": 1
+  },
+  {
+    "from": "pair",
+    "to": "prs",
+    "factor": 1
+  },
+  {
+    "from": "prs",
+    "to": "pair",
+    "factor": 1
+  },
+  {
+    "from": "pairs",
+    "to": "prs",
+    "factor": 1
+  },
+  {
+    "from": "prs",
+    "to": "pairs",
+    "factor": 1
+  },
+  {
+    "from": "set",
+    "to": "sets",
+    "factor": 1
+  },
+  {
+    "from": "sets",
+    "to": "set",
+    "factor": 1
+  },
+  {
+    "from": "piece",
+    "to": "pcs",
+    "factor": 1
+  },
+  {
+    "from": "pieces",
+    "to": "pcs",
+    "factor": 1
+  }
+]

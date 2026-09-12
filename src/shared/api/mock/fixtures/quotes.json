@@ -1,0 +1,1823 @@
+[
+  {
+    "header": {
+      "id": "nordic",
+      "quotationNumber": "7.14.2026.136449",
+      "reference": "E114_26",
+      "customerName": "Nordic Aurora Shipping",
+      "customerCode": "NEWCUS",
+      "contactName": "Lars Eikeland",
+      "contactEmail": "l.eikeland@nordicaurora.example",
+      "vesselName": "MV LIA",
+      "imo": "9417751",
+      "port": "Singapore",
+      "cutOff": "15 Sep · 20ft",
+      "storeType": "DECK",
+      "productCategory": "TECHNICAL",
+      "dueDate": "8 Sep",
+      "receivedAt": "12-Aug-2026 09:14",
+      "priority": "NORMAL",
+      "fileType": "EXCEL",
+      "team": "SG Local",
+      "attachments": [
+        "E114_26.xlsx",
+        "IMG_4412.jpg"
+      ],
+      "requestBody": "Subject: RFQ E114_26 – LIA – deck & safety stores, Singapore\n\nDear Seven Seas team,\n\nPlease quote items in the attached Excel for delivery Singapore. Photo attached for the rulers.\n\nLars Eikeland — Technical Purchasing"
+    },
+    "isTaken": true,
+    "isDeclined": false,
+    "responsibleUser": "Priya N.",
+    "processingTime": "22 h",
+    "lines": [
+      {
+        "id": "nordic-L1",
+        "customerDescription": "Welding wire ER70S-6 0.8 mm — 0.03 ton",
+        "customerCode": "691900",
+        "requestedQuantity": 0.03,
+        "customerUnit": "t",
+        "matchedItemCode": "T40100500",
+        "suggestedItemCodes": [
+          "T40100500"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "nordic-L2",
+        "customerDescription": "Hydraulic hose 2SN 1/2\" — 250 cm",
+        "customerCode": "",
+        "requestedQuantity": 250,
+        "customerUnit": "cm",
+        "matchedItemCode": "T22110080",
+        "suggestedItemCodes": [
+          "T22110080"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "nordic-L3",
+        "customerDescription": "Thinner — 1 drum",
+        "customerCode": "",
+        "requestedQuantity": 1,
+        "customerUnit": "drum",
+        "matchedItemCode": "T93000300",
+        "suggestedItemCodes": [
+          "T93000300"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "nordic-L4",
+        "customerDescription": "Hexagon Head Bolts Full Threaded (Bolt with Nut) M16*65",
+        "customerCode": "691284",
+        "requestedQuantity": 500,
+        "customerUnit": "set",
+        "matchedItemCode": "T69128400",
+        "suggestedItemCodes": [
+          "T69128400",
+          "T69128401",
+          "T69128420"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "nordic-L5",
+        "customerDescription": "Hexagon Head Bolts Full Threaded (Bolt with Nut) M20*80",
+        "customerCode": "691331",
+        "requestedQuantity": 500,
+        "customerUnit": "set",
+        "matchedItemCode": "T69133100",
+        "suggestedItemCodes": [
+          "T69133100"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "nordic-L6",
+        "customerDescription": "Welding goggles",
+        "customerCode": "851111",
+        "requestedQuantity": 12,
+        "customerUnit": "pcs",
+        "matchedItemCode": "T85111100",
+        "suggestedItemCodes": [
+          "T85111100"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "nordic-L7",
+        "customerDescription": "Weldings gloves(five fingers)",
+        "customerCode": "851163",
+        "requestedQuantity": 30,
+        "customerUnit": "pcs",
+        "matchedItemCode": null,
+        "suggestedItemCodes": [
+          "T85116300",
+          "T85116310"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "nordic-L8",
+        "customerDescription": "Convex rulers",
+        "customerCode": "650823",
+        "requestedQuantity": 5,
+        "customerUnit": "pcs",
+        "matchedItemCode": null,
+        "suggestedItemCodes": [
+          "T65082300",
+          "T65082200"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": "IMG_4412.jpg",
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "nordic-L9",
+        "customerDescription": "Boilersuit XL 100% cotton navy 3XL",
+        "customerCode": "312374",
+        "requestedQuantity": 3,
+        "customerUnit": "pcs",
+        "matchedItemCode": "T31237400",
+        "suggestedItemCodes": [
+          "T31237400",
+          "T31237200"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [
+          {
+            "supplierId": "safety",
+            "status": "assigned",
+            "offer": null,
+            "infoRequest": null,
+            "isInfoResolved": false,
+            "isIgnored": false,
+            "isSelected": false,
+            "followUpNote": null,
+            "repliedAt": null
+          },
+          {
+            "supplierId": "oriental",
+            "status": "assigned",
+            "offer": null,
+            "infoRequest": null,
+            "isInfoResolved": false,
+            "isIgnored": false,
+            "isSelected": false,
+            "followUpNote": null,
+            "repliedAt": null
+          }
+        ],
+        "attachment": null,
+        "customerRemark": "Portwest brand only — as per email",
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "nordic-L10",
+        "customerDescription": "Steel toe sneakers 25",
+        "customerCode": "190363",
+        "requestedQuantity": 1,
+        "customerUnit": "pcs",
+        "matchedItemCode": "T19036300",
+        "suggestedItemCodes": [
+          "T19036300"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [
+          {
+            "supplierId": "oriental",
+            "status": "assigned",
+            "offer": null,
+            "infoRequest": null,
+            "isInfoResolved": false,
+            "isIgnored": false,
+            "isSelected": false,
+            "followUpNote": null,
+            "repliedAt": null
+          }
+        ],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "nordic-L11",
+        "customerDescription": "Nautical Equipment — lifeboat freefall IMO safety sign 150x150 self vinyl double sided tape",
+        "customerCode": "",
+        "requestedQuantity": 2,
+        "customerUnit": "pcs",
+        "matchedItemCode": null,
+        "suggestedItemCodes": [],
+        "rejectedItemCodes": [],
+        "suppliers": [
+          {
+            "supplierId": "ewliner",
+            "status": "replied",
+            "offer": null,
+            "infoRequest": "Remarks: please provide sample image",
+            "isInfoResolved": false,
+            "isIgnored": false,
+            "isSelected": false,
+            "followUpNote": null,
+            "repliedAt": "12-Aug 16:40"
+          },
+          {
+            "supplierId": "marinet",
+            "status": "replied",
+            "offer": {
+              "unitPrice": 0.55,
+              "leadTime": {
+                "days": 2,
+                "hours": 0
+              },
+              "validity": "12-Sep-2026",
+              "remarks": null,
+              "supplierDescription": "Lifeboat freefall IMO safety sign 150x150 mm square self vinyl with double sided tape",
+              "brand": "Marinet",
+              "unit": "pcs",
+              "quotedQuantity": 2
+            },
+            "infoRequest": null,
+            "isInfoResolved": false,
+            "isIgnored": false,
+            "isSelected": false,
+            "followUpNote": null,
+            "repliedAt": "12-Aug 15:10"
+          }
+        ],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": "exact title / IMO symbol number, or a sample image",
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "nordic-L12",
+        "customerDescription": "Danfoss pressure switch KP35 0.2-7.5 bar",
+        "customerCode": "",
+        "requestedQuantity": 4,
+        "customerUnit": "pcs",
+        "matchedItemCode": "T12000100",
+        "suggestedItemCodes": [
+          "T12000100",
+          "T12000200"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [
+          {
+            "supplierId": "hansa",
+            "status": "replied",
+            "offer": {
+              "unitPrice": 142,
+              "leadTime": {
+                "days": 5,
+                "hours": 12
+              },
+              "validity": "30 d",
+              "remarks": "Genuine, ex-stock",
+              "supplierDescription": "Danfoss KP35 060-113366 pressure control 0.2–7.5 bar",
+              "brand": "Danfoss",
+              "unit": "pcs",
+              "quotedQuantity": 4
+            },
+            "infoRequest": null,
+            "isInfoResolved": false,
+            "isIgnored": false,
+            "isSelected": false,
+            "followUpNote": null,
+            "repliedAt": "12-Aug 16:40"
+          },
+          {
+            "supplierId": "pacific",
+            "status": "replied",
+            "offer": {
+              "unitPrice": 118,
+              "leadTime": {
+                "days": 9,
+                "hours": 0
+              },
+              "validity": "7 d",
+              "remarks": "Ex-stock Malaysia",
+              "supplierDescription": "KP35 pressure switch 0.2–7.5 bar",
+              "brand": "Danfoss",
+              "unit": "ea",
+              "quotedQuantity": 4
+            },
+            "infoRequest": null,
+            "isInfoResolved": false,
+            "isIgnored": false,
+            "isSelected": false,
+            "followUpNote": null,
+            "repliedAt": "13-Aug 09:40"
+          }
+        ],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": "Urgent",
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      }
+    ],
+    "mails": [
+      {
+        "id": "nordic-M1",
+        "kind": "inbound",
+        "status": "sent",
+        "title": null,
+        "at": "12-Aug-2026 09:14",
+        "body": "Subject: RFQ E114_26 – LIA – deck & safety stores, Singapore\n\nDear Seven Seas team,\n\nPlease quote items in the attached Excel for delivery Singapore. Photo attached for the rulers.\n\nLars Eikeland — Technical Purchasing",
+        "attachments": [
+          "E114_26.xlsx",
+          "IMG_4412.jpg"
+        ],
+        "lineIds": [],
+        "proposedUpdates": [],
+        "revision": null,
+        "isAnswerToClarification": false
+      }
+    ],
+    "inquiries": [],
+    "pricing": {
+      "storeType": "DECK",
+      "productCategory": "TECHNICAL",
+      "stockMargin": 0.14,
+      "nonStockMargin": 0.14,
+      "freightDistribution": "none",
+      "freightAmount": 310
+    },
+    "outputType": null,
+    "sentAt": null,
+    "hasCustomerReply": false,
+    "revisedAt": null,
+    "acceptedAt": null,
+    "orderStage": null,
+    "marginDecision": null
+  },
+  {
+    "header": {
+      "id": "meridian",
+      "quotationNumber": "7.14.2026.136580",
+      "reference": "E116_26",
+      "customerName": "Meridian Tankers",
+      "customerCode": "MER0212",
+      "contactName": "Sofia Moreau",
+      "contactEmail": "purchasing@meridiantankers.example",
+      "vesselName": "MT Meridian Star",
+      "imo": "9501234",
+      "port": "Fujairah",
+      "cutOff": "12 Sep · 20ft",
+      "storeType": "DECK",
+      "productCategory": "TECHNICAL",
+      "dueDate": "10 Sep",
+      "receivedAt": "13-Aug-2026 08:51",
+      "priority": "NORMAL",
+      "fileType": "EXCEL",
+      "team": "SG Local",
+      "attachments": [
+        "E116_26.pdf"
+      ],
+      "requestBody": "Subject: RFQ E116_26 – MT Meridian Star – deck stores, Fujairah\n\nDear Sirs,\n\nKindly quote the attached list (PDF, 18 items) for delivery Fujairah, ETA 16 Sep. Best price by 10 Sep.\n\nSofia Moreau — Purchasing, Meridian Tankers"
+    },
+    "isTaken": false,
+    "isDeclined": false,
+    "responsibleUser": null,
+    "processingTime": "3 h",
+    "lines": [
+      {
+        "id": "meridian-L1",
+        "customerDescription": "Fire hose layflat 52 mm — 45 m",
+        "customerCode": "MT-1012",
+        "requestedQuantity": 45,
+        "customerUnit": "m",
+        "matchedItemCode": "T75075210",
+        "suggestedItemCodes": [
+          "T75075210"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "meridian-L2",
+        "customerDescription": "Nitrile disposable gloves L — 250 pairs",
+        "customerCode": "MT-1013",
+        "requestedQuantity": 250,
+        "customerUnit": "pair",
+        "matchedItemCode": "T90020114",
+        "suggestedItemCodes": [
+          "T90020114",
+          "T90020208"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "meridian-L3",
+        "customerDescription": "Chain link galv 16 mm — 200 cm",
+        "customerCode": "MT-1014",
+        "requestedQuantity": 200,
+        "customerUnit": "cm",
+        "matchedItemCode": "T70070100",
+        "suggestedItemCodes": [
+          "T70070100"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "meridian-L4",
+        "customerDescription": "Rice long grain — 0.5 ton",
+        "customerCode": "MT-1015",
+        "requestedQuantity": 0.5,
+        "customerUnit": "t",
+        "matchedItemCode": "T80080012",
+        "suggestedItemCodes": [
+          "T80080012",
+          "T80080011"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "meridian-L5",
+        "customerDescription": "Anti-corrosion primer grey — 40 ltr",
+        "customerCode": "MT-1016",
+        "requestedQuantity": 40,
+        "customerUnit": "ltr",
+        "matchedItemCode": "T91000100",
+        "suggestedItemCodes": [
+          "T91000100"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "meridian-L6",
+        "customerDescription": "Cotton rags white — 2 bales",
+        "customerCode": "MT-1017",
+        "requestedQuantity": 2,
+        "customerUnit": "bale",
+        "matchedItemCode": "T92000200",
+        "suggestedItemCodes": [
+          "T92000200"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "meridian-L7",
+        "customerDescription": "Thinner general purpose — 1 drum",
+        "customerCode": "MT-1018",
+        "requestedQuantity": 1,
+        "customerUnit": "drum",
+        "matchedItemCode": "T93000300",
+        "suggestedItemCodes": [
+          "T93000300"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "meridian-L8",
+        "customerDescription": "Welding goggles flip-up",
+        "customerCode": "MT-1002",
+        "requestedQuantity": 6,
+        "customerUnit": "pcs",
+        "matchedItemCode": "T85111100",
+        "suggestedItemCodes": [
+          "T85111100"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "meridian-L9",
+        "customerDescription": "Safety spectacles clear anti-fog",
+        "customerCode": "MT-1003",
+        "requestedQuantity": 20,
+        "customerUnit": "pcs",
+        "matchedItemCode": "T85111300",
+        "suggestedItemCodes": [
+          "T85111300"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "meridian-L10",
+        "customerDescription": "Hex bolt with nut M16x65 steel",
+        "customerCode": "MT-1001",
+        "requestedQuantity": 200,
+        "customerUnit": "set",
+        "matchedItemCode": "T69128400",
+        "suggestedItemCodes": [
+          "T69128400",
+          "T69128401"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": "Malaysian factory only (previous batch from China had thread issues) — as per email",
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "meridian-L11",
+        "customerDescription": "Welding gloves",
+        "customerCode": "MT-1004",
+        "requestedQuantity": 12,
+        "customerUnit": "pair",
+        "matchedItemCode": null,
+        "suggestedItemCodes": [
+          "T85116300",
+          "T85116310"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "meridian-L12",
+        "customerDescription": "Steel rule 5 m",
+        "customerCode": "MT-1005",
+        "requestedQuantity": 4,
+        "customerUnit": "pcs",
+        "matchedItemCode": "T65082300",
+        "suggestedItemCodes": [
+          "T65082300"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "meridian-L13",
+        "customerDescription": "Boilersuit navy cotton XL",
+        "customerCode": "MT-1006",
+        "requestedQuantity": 6,
+        "customerUnit": "pcs",
+        "matchedItemCode": "T31237200",
+        "suggestedItemCodes": [
+          "T31237200",
+          "T31237400"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "meridian-L14",
+        "customerDescription": "Safety shoes steel toe size 42",
+        "customerCode": "MT-1007",
+        "requestedQuantity": 4,
+        "customerUnit": "pair",
+        "matchedItemCode": null,
+        "suggestedItemCodes": [
+          "T19036500",
+          "T19036700"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "meridian-L15",
+        "customerDescription": "Fire control sign CO2 space 150x150",
+        "customerCode": "MT-1008",
+        "requestedQuantity": 10,
+        "customerUnit": "pcs",
+        "matchedItemCode": "T36859000",
+        "suggestedItemCodes": [
+          "T36859000"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "meridian-L16",
+        "customerDescription": "Hydraulic hose assy 3/4 BSP 1.5 m",
+        "customerCode": "MT-1009",
+        "requestedQuantity": 2,
+        "customerUnit": "pcs",
+        "matchedItemCode": "T22004120",
+        "suggestedItemCodes": [
+          "T22004120",
+          "T22004100"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "meridian-L17",
+        "customerDescription": "Bracket for deck lamp as per sketch",
+        "customerCode": "MT-1010",
+        "requestedQuantity": 2,
+        "customerUnit": "pcs",
+        "matchedItemCode": null,
+        "suggestedItemCodes": [],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": "sketch.jpg",
+        "customerRemark": null,
+        "clarificationQuestion": "dimensions and material of the bracket",
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "meridian-L18",
+        "customerDescription": "Mooring rope 64 mm 220 m",
+        "customerCode": "MT-1011",
+        "requestedQuantity": 1,
+        "customerUnit": "coil",
+        "matchedItemCode": "T70070310",
+        "suggestedItemCodes": [
+          "T70070310"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      }
+    ],
+    "mails": [
+      {
+        "id": "meridian-M1",
+        "kind": "inbound",
+        "status": "sent",
+        "title": null,
+        "at": "13-Aug-2026 08:51",
+        "body": "Subject: RFQ E116_26 – MT Meridian Star – deck stores, Fujairah\n\nDear Sirs,\n\nKindly quote the attached list (PDF, 18 items) for delivery Fujairah, ETA 16 Sep. Best price by 10 Sep.\n\nSofia Moreau — Purchasing, Meridian Tankers",
+        "attachments": [
+          "E116_26.pdf"
+        ],
+        "lineIds": [],
+        "proposedUpdates": [],
+        "revision": null,
+        "isAnswerToClarification": false
+      }
+    ],
+    "inquiries": [],
+    "pricing": {
+      "storeType": "DECK",
+      "productCategory": "TECHNICAL",
+      "stockMargin": 0.14,
+      "nonStockMargin": 0.14,
+      "freightDistribution": "none",
+      "freightAmount": 310
+    },
+    "outputType": null,
+    "sentAt": null,
+    "hasCustomerReply": false,
+    "revisedAt": null,
+    "acceptedAt": null,
+    "orderStage": null,
+    "marginDecision": null
+  },
+  {
+    "header": {
+      "id": "cpl",
+      "quotationNumber": "7.14.2026.136571",
+      "reference": "D-076_26",
+      "customerName": "Pacific Grace Management",
+      "customerCode": "CPL0102",
+      "contactName": "Mei Ling Tan",
+      "contactEmail": "purchasing@cpl.example",
+      "vesselName": "MV Pacific Grace",
+      "imo": "9455120",
+      "port": "Jebel ALI",
+      "cutOff": "15 Sep · 20ft",
+      "storeType": "DECK",
+      "productCategory": "TECHNICAL",
+      "dueDate": "7 Sep",
+      "receivedAt": "12-Aug-2026 11:02",
+      "priority": "NORMAL",
+      "fileType": "MTML",
+      "team": "SG Local",
+      "attachments": [
+        "D-076_26.xml"
+      ],
+      "requestBody": "eConnect RFQ D-076_26 · MV PACIFIC GRACE · Delivery Port JEBEL ALI · Requisition Category ENGINE\n\n1. FILTER LUBE OIL FLEETGUARD LF3000 — 12 PCS\n2. V-BELT SPB 2500 — 4 PCS\n3. FILTER ELEMENT FUEL RACOR 2020PM-OR — 24 PCS\n4. CONTACTOR SCHNEIDER LC1D25 230V — 2 PCS\n5. PRESSURE SWITCH DANFOSS KP36 4-12 BAR — 2 PCS\n6. FLOODLIGHT LED 100W IP66 — 6 PCS"
+    },
+    "isTaken": true,
+    "isDeclined": false,
+    "responsibleUser": "Priya N.",
+    "processingTime": "18 h",
+    "lines": [
+      {
+        "id": "cpl-L1",
+        "customerDescription": "Copper pipe 15 mm — 600 cm",
+        "customerCode": "CPL-51001",
+        "requestedQuantity": 600,
+        "customerUnit": "cm",
+        "matchedItemCode": "T22300100",
+        "suggestedItemCodes": [
+          "T22300100"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "cpl-L2",
+        "customerDescription": "Grease multipurpose EP2 — 0.036 t",
+        "customerCode": "CPL-51002",
+        "requestedQuantity": 0.036,
+        "customerUnit": "t",
+        "matchedItemCode": "T94000100",
+        "suggestedItemCodes": [
+          "T94000100"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "cpl-L3",
+        "customerDescription": "Lube oil sae 40 — 2 drum",
+        "customerCode": "CPL-51003",
+        "requestedQuantity": 2,
+        "customerUnit": "drum",
+        "matchedItemCode": "T94000200",
+        "suggestedItemCodes": [
+          "T94000200"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "cpl-L4",
+        "customerDescription": "Filter lube oil Fleetguard LF3000",
+        "customerCode": "CPL-33107",
+        "requestedQuantity": 12,
+        "customerUnit": "pcs",
+        "matchedItemCode": "T50050112",
+        "suggestedItemCodes": [
+          "T50050112"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "cpl-L5",
+        "customerDescription": "V-belt spb 2500",
+        "customerCode": "CPL-33220",
+        "requestedQuantity": 4,
+        "customerUnit": "pcs",
+        "matchedItemCode": "T50050230",
+        "suggestedItemCodes": [
+          "T50050230"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "cpl-L6",
+        "customerDescription": "Filter element fuel Racor 2020PM-OR",
+        "customerCode": "CPL-33108",
+        "requestedQuantity": 24,
+        "customerUnit": "pcs",
+        "matchedItemCode": "T50050110",
+        "suggestedItemCodes": [
+          "T50050110"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [
+          {
+            "supplierId": "hansa",
+            "status": "awaiting",
+            "offer": null,
+            "infoRequest": null,
+            "isInfoResolved": false,
+            "isIgnored": false,
+            "isSelected": false,
+            "followUpNote": null,
+            "repliedAt": null
+          },
+          {
+            "supplierId": "ancor",
+            "status": "awaiting",
+            "offer": null,
+            "infoRequest": null,
+            "isInfoResolved": false,
+            "isIgnored": false,
+            "isSelected": false,
+            "followUpNote": null,
+            "repliedAt": null
+          }
+        ],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "cpl-L7",
+        "customerDescription": "Contactor Schneider LC1D25 230 V",
+        "customerCode": "CPL-41002",
+        "requestedQuantity": 2,
+        "customerUnit": "pcs",
+        "matchedItemCode": "T60060045",
+        "suggestedItemCodes": [
+          "T60060045"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [
+          {
+            "supplierId": "selco",
+            "status": "awaiting",
+            "offer": null,
+            "infoRequest": null,
+            "isInfoResolved": false,
+            "isIgnored": false,
+            "isSelected": false,
+            "followUpNote": null,
+            "repliedAt": null
+          }
+        ],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "cpl-L8",
+        "customerDescription": "Pressure switch Danfoss KP36 4-12 bar",
+        "customerCode": "CPL-38870",
+        "requestedQuantity": 2,
+        "customerUnit": "pcs",
+        "matchedItemCode": "T12000200",
+        "suggestedItemCodes": [
+          "T12000200"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [
+          {
+            "supplierId": "hansa",
+            "status": "awaiting",
+            "offer": null,
+            "infoRequest": null,
+            "isInfoResolved": false,
+            "isIgnored": false,
+            "isSelected": false,
+            "followUpNote": null,
+            "repliedAt": null
+          },
+          {
+            "supplierId": "pacific",
+            "status": "awaiting",
+            "offer": null,
+            "infoRequest": null,
+            "isInfoResolved": false,
+            "isIgnored": false,
+            "isSelected": false,
+            "followUpNote": "Reminder 13-Aug 14:00",
+            "repliedAt": null
+          }
+        ],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "cpl-L9",
+        "customerDescription": "Floodlight LED 100 W IP66",
+        "customerCode": "CPL-41550",
+        "requestedQuantity": 6,
+        "customerUnit": "pcs",
+        "matchedItemCode": "T60060102",
+        "suggestedItemCodes": [
+          "T60060102"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      }
+    ],
+    "mails": [
+      {
+        "id": "cpl-M1",
+        "kind": "inbound",
+        "status": "sent",
+        "title": null,
+        "at": "12-Aug-2026 11:02",
+        "body": "eConnect RFQ D-076_26 · MV PACIFIC GRACE · Delivery Port JEBEL ALI · Requisition Category ENGINE\n\n1. FILTER LUBE OIL FLEETGUARD LF3000 — 12 PCS\n2. V-BELT SPB 2500 — 4 PCS\n3. FILTER ELEMENT FUEL RACOR 2020PM-OR — 24 PCS\n4. CONTACTOR SCHNEIDER LC1D25 230V — 2 PCS\n5. PRESSURE SWITCH DANFOSS KP36 4-12 BAR — 2 PCS\n6. FLOODLIGHT LED 100W IP66 — 6 PCS",
+        "attachments": [
+          "D-076_26.xml"
+        ],
+        "lineIds": [],
+        "proposedUpdates": [],
+        "revision": null,
+        "isAnswerToClarification": false
+      }
+    ],
+    "inquiries": [
+      {
+        "id": "cpl-WI1",
+        "sentAt": "13-Aug 10:12",
+        "supplierId": "hansa",
+        "lineIds": [
+          "cpl-L6",
+          "cpl-L8"
+        ],
+        "attachments": []
+      },
+      {
+        "id": "cpl-WI2",
+        "sentAt": "13-Aug 10:12",
+        "supplierId": "ancor",
+        "lineIds": [
+          "cpl-L6"
+        ],
+        "attachments": []
+      },
+      {
+        "id": "cpl-WI3",
+        "sentAt": "13-Aug 10:12",
+        "supplierId": "selco",
+        "lineIds": [
+          "cpl-L7"
+        ],
+        "attachments": []
+      },
+      {
+        "id": "cpl-WI4",
+        "sentAt": "13-Aug 10:12",
+        "supplierId": "pacific",
+        "lineIds": [
+          "cpl-L8"
+        ],
+        "attachments": []
+      }
+    ],
+    "pricing": {
+      "storeType": "DECK",
+      "productCategory": "TECHNICAL",
+      "stockMargin": 0.14,
+      "nonStockMargin": 0.14,
+      "freightDistribution": "none",
+      "freightAmount": 310
+    },
+    "outputType": null,
+    "sentAt": null,
+    "hasCustomerReply": false,
+    "revisedAt": null,
+    "acceptedAt": null,
+    "orderStage": null,
+    "marginDecision": null
+  },
+  {
+    "header": {
+      "id": "thome",
+      "quotationNumber": "7.14.2026.136570",
+      "reference": "D-078_26",
+      "customerName": "Thome Ship Mgmt",
+      "customerCode": "THM0077",
+      "contactName": "Arjun Nair",
+      "contactEmail": "tech.purchasing@thome.example",
+      "vesselName": "MV Thome Star",
+      "imo": "9611234",
+      "port": "Singapore",
+      "cutOff": "10 Sep · van",
+      "storeType": "STATIONARY",
+      "productCategory": "TECHNICAL",
+      "dueDate": "8 Sep",
+      "receivedAt": "12-Aug-2026 15:20",
+      "priority": "NORMAL",
+      "fileType": "EXCEL",
+      "team": "SG Local",
+      "attachments": [
+        "D-078_26.pdf"
+      ],
+      "requestBody": "Subject: Quotation request D-078_26 – MV THOME STAR\n\nPlease see attached PDF, delivery Singapore anchorage.\n\nArjun Nair"
+    },
+    "isTaken": true,
+    "isDeclined": false,
+    "responsibleUser": "M. Lim",
+    "processingTime": "18 h",
+    "lines": [
+      {
+        "id": "thome-L1",
+        "customerDescription": "Wire rope galv 16 mm — 5000 cm",
+        "customerCode": "",
+        "requestedQuantity": 5000,
+        "customerUnit": "cm",
+        "matchedItemCode": "T70070200",
+        "suggestedItemCodes": [
+          "T70070200"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "thome-L2",
+        "customerDescription": "Zinc anodes hull — 0.12 t",
+        "customerCode": "",
+        "requestedQuantity": 0.12,
+        "customerUnit": "t",
+        "matchedItemCode": "T95000100",
+        "suggestedItemCodes": [
+          "T95000100"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "thome-L3",
+        "customerDescription": "Deck paint green — 3 drums",
+        "customerCode": "",
+        "requestedQuantity": 3,
+        "customerUnit": "drum",
+        "matchedItemCode": "T91000200",
+        "suggestedItemCodes": [
+          "T91000200"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "thome-L4",
+        "customerDescription": "Mooring rope PP 8 strand 64mm x 220m",
+        "customerCode": "",
+        "requestedQuantity": 2,
+        "customerUnit": "coil",
+        "matchedItemCode": "T70070310",
+        "suggestedItemCodes": [
+          "T70070310"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "thome-L5",
+        "customerDescription": "Bow shackle 25mm galv",
+        "customerCode": "",
+        "requestedQuantity": 20,
+        "customerUnit": "pcs",
+        "matchedItemCode": "T70070420",
+        "suggestedItemCodes": [
+          "T70070420"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "thome-L6",
+        "customerDescription": "Nitrile gloves L",
+        "customerCode": "",
+        "requestedQuantity": 50,
+        "customerUnit": "pair",
+        "matchedItemCode": "T90020208",
+        "suggestedItemCodes": [
+          "T90020208",
+          "T90020114"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "thome-L7",
+        "customerDescription": "Deck light bracket as per drawing",
+        "customerCode": "",
+        "requestedQuantity": 4,
+        "customerUnit": "pcs",
+        "matchedItemCode": null,
+        "suggestedItemCodes": [],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": "drawing dimensions and material",
+        "note": null,
+        "isAsked": true,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "thome-L8",
+        "customerDescription": "Special tool for winch brake (see photo)",
+        "customerCode": "",
+        "requestedQuantity": 1,
+        "customerUnit": "pcs",
+        "matchedItemCode": null,
+        "suggestedItemCodes": [],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": "winch maker and model",
+        "note": null,
+        "isAsked": true,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      }
+    ],
+    "mails": [
+      {
+        "id": "thome-M1",
+        "kind": "inbound",
+        "status": "sent",
+        "title": null,
+        "at": "12-Aug-2026 15:20",
+        "body": "Subject: Quotation request D-078_26 – MV THOME STAR\n\nPlease see attached PDF, delivery Singapore anchorage.\n\nArjun Nair",
+        "attachments": [
+          "D-078_26.pdf"
+        ],
+        "lineIds": [],
+        "proposedUpdates": [],
+        "revision": null,
+        "isAnswerToClarification": false
+      },
+      {
+        "id": "thome-M2",
+        "kind": "clarification",
+        "status": "sent",
+        "title": null,
+        "at": "13-Aug 09:40",
+        "body": "Dear Arjun,\n\nWe could not identify the following items. Could you add details?\n\n– Deck light bracket as per drawing: drawing dimensions and material\n– Special tool for winch brake (see photo): winch maker and model\n\nAll other lines are being priced and will follow.\n\nBest regards,\nM. Lim, Seven Seas Group",
+        "attachments": [],
+        "lineIds": [
+          "thome-L7",
+          "thome-L8"
+        ],
+        "proposedUpdates": [],
+        "revision": null,
+        "isAnswerToClarification": false
+      }
+    ],
+    "inquiries": [],
+    "pricing": {
+      "storeType": "STATIONARY",
+      "productCategory": "TECHNICAL",
+      "stockMargin": 0.14,
+      "nonStockMargin": 0.14,
+      "freightDistribution": "none",
+      "freightAmount": 310
+    },
+    "outputType": null,
+    "sentAt": null,
+    "hasCustomerReply": false,
+    "revisedAt": null,
+    "acceptedAt": null,
+    "orderStage": null,
+    "marginDecision": null
+  },
+  {
+    "header": {
+      "id": "hellenic",
+      "quotationNumber": "7.14.2026.136055",
+      "reference": "E112",
+      "customerName": "Hellenic Reefers",
+      "customerCode": "HEL0311",
+      "contactName": "Nikos Papadakis",
+      "contactEmail": "ops@hellenicreefers.example",
+      "vesselName": "MV Thetis",
+      "imo": "9388811",
+      "port": "Piraeus",
+      "cutOff": "9 Sep · 40ft reefer",
+      "storeType": "PROVISIONS",
+      "productCategory": "PROVISIONS",
+      "dueDate": "6 Sep",
+      "receivedAt": "12-Aug-2026 09:05",
+      "priority": "NORMAL",
+      "fileType": "EXCEL",
+      "team": "SG Local",
+      "attachments": [
+        "E112.xlsx"
+      ],
+      "requestBody": "Subject: RFQ E112 – provisions – MV THETIS\n\nProvisions list attached (customer Excel format — please fill in our file).\n\nNikos Papadakis"
+    },
+    "isTaken": true,
+    "isDeclined": false,
+    "responsibleUser": "Priya N.",
+    "processingTime": "—",
+    "lines": [
+      {
+        "id": "hellenic-L1",
+        "customerDescription": "Rice long grain — 0.25 ton",
+        "customerCode": "",
+        "requestedQuantity": 0.25,
+        "customerUnit": "t",
+        "matchedItemCode": "T80080012",
+        "suggestedItemCodes": [
+          "T80080012",
+          "T80080011"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "hellenic-L2",
+        "customerDescription": "Milk UHT full cream — 240 ltr",
+        "customerCode": "",
+        "requestedQuantity": 240,
+        "customerUnit": "ltr",
+        "matchedItemCode": "T80080300",
+        "suggestedItemCodes": [
+          "T80080300"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "hellenic-L3",
+        "customerDescription": "Onions yellow — 50 kg",
+        "customerCode": "",
+        "requestedQuantity": 50,
+        "customerUnit": "kg",
+        "matchedItemCode": "T80080700",
+        "suggestedItemCodes": [
+          "T80080700"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "hellenic-L4",
+        "customerDescription": "Rice long grain 25kg",
+        "customerCode": "",
+        "requestedQuantity": 10,
+        "customerUnit": "bag",
+        "matchedItemCode": "T80080011",
+        "suggestedItemCodes": [
+          "T80080011"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "hellenic-L5",
+        "customerDescription": "Chicken whole frozen 1.2kg",
+        "customerCode": "",
+        "requestedQuantity": 20,
+        "customerUnit": "ctn",
+        "matchedItemCode": "T80080230",
+        "suggestedItemCodes": [
+          "T80080230"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "hellenic-L6",
+        "customerDescription": "Mineral water 1.5L",
+        "customerCode": "",
+        "requestedQuantity": 60,
+        "customerUnit": "ctn",
+        "matchedItemCode": "T80080455",
+        "suggestedItemCodes": [
+          "T80080455"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      },
+      {
+        "id": "hellenic-L7",
+        "customerDescription": "Eggs tray 30",
+        "customerCode": "",
+        "requestedQuantity": 15,
+        "customerUnit": "tray",
+        "matchedItemCode": "T80080610",
+        "suggestedItemCodes": [
+          "T80080610"
+        ],
+        "rejectedItemCodes": [],
+        "suppliers": [],
+        "attachment": null,
+        "customerRemark": null,
+        "clarificationQuestion": null,
+        "note": null,
+        "isAsked": false,
+        "isExcluded": false,
+        "internalComment": "",
+        "messages": [],
+        "manualShipSupplyQuantity": null,
+        "overriddenUnit": null
+      }
+    ],
+    "mails": [
+      {
+        "id": "hellenic-M1",
+        "kind": "inbound",
+        "status": "sent",
+        "title": null,
+        "at": "12-Aug-2026 09:05",
+        "body": "Subject: RFQ E112 – provisions – MV THETIS\n\nProvisions list attached (customer Excel format — please fill in our file).\n\nNikos Papadakis",
+        "attachments": [
+          "E112.xlsx"
+        ],
+        "lineIds": [],
+        "proposedUpdates": [],
+        "revision": null,
+        "isAnswerToClarification": false
+      },
+      {
+        "id": "hellenic-M2",
+        "kind": "quotation",
+        "status": "sent",
+        "title": null,
+        "at": "13-Aug 16:30",
+        "body": "Dear Nikos,\n\nGood Day\n\nThank you for placing your inquiry with us. Please find your Excel populated with our prices, plus PDF.\n\nPayment terms and conditions remain the same. Currency: US Dollars.\n\nThanks and Best Regards,\nPriya N.",
+        "attachments": [
+          "E112_quoted.xlsx",
+          "7.14.2026.136055.pdf"
+        ],
+        "lineIds": [],
+        "proposedUpdates": [],
+        "revision": null,
+        "isAnswerToClarification": false
+      }
+    ],
+    "inquiries": [],
+    "pricing": {
+      "storeType": "PROVISIONS",
+      "productCategory": "PROVISIONS",
+      "stockMargin": 0.14,
+      "nonStockMargin": 0.14,
+      "freightDistribution": "none",
+      "freightAmount": 310
+    },
+    "outputType": "customerExcel",
+    "sentAt": "13-Aug 16:30",
+    "hasCustomerReply": false,
+    "revisedAt": null,
+    "acceptedAt": null,
+    "orderStage": null,
+    "marginDecision": null
+  }
+]

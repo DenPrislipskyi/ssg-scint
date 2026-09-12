@@ -1,0 +1,209 @@
+[
+  {
+    "supplierId": "lianseng",
+    "unitPrice": 0.38,
+    "leadTime": {
+      "days": 2,
+      "hours": 0
+    },
+    "validity": "30 d",
+    "remarks": null,
+    "supplierDescription": "Hex bolt c/w nut M16x65 zinc plated 8.8",
+    "brand": "Fastech",
+    "unit": "pcs",
+    "quantityFactor": 1,
+    "infoRequest": null
+  },
+  {
+    "supplierId": "shunzhou",
+    "unitPrice": 0.35,
+    "leadTime": {
+      "days": 5,
+      "hours": 0
+    },
+    "validity": "14 d",
+    "remarks": "MOQ 500",
+    "supplierDescription": "Bolt hex M16*65 with nut, black steel",
+    "brand": "Shun Zhou",
+    "unit": "set",
+    "quantityFactor": 2.5,
+    "infoRequest": null
+  },
+  {
+    "supplierId": "central",
+    "unitPrice": 0.41,
+    "leadTime": {
+      "days": 3,
+      "hours": 12
+    },
+    "validity": "30 d",
+    "remarks": null,
+    "supplierDescription": "Hex bolt/nut M16×65 grade 8.8 ungalv",
+    "brand": "TR Fastenings",
+    "unit": null,
+    "quantityFactor": 1,
+    "infoRequest": null
+  },
+  {
+    "supplierId": "oriental",
+    "unitPrice": 21,
+    "leadTime": {
+      "days": 4,
+      "hours": 0
+    },
+    "validity": "14 d",
+    "remarks": null,
+    "supplierDescription": "Safety shoe steel toe cap low cut, size as req.",
+    "brand": "King's",
+    "unit": "pair",
+    "quantityFactor": 1,
+    "infoRequest": null
+  },
+  {
+    "supplierId": "safety",
+    "unitPrice": 19.5,
+    "leadTime": {
+      "days": 3,
+      "hours": 0
+    },
+    "validity": "30 d",
+    "remarks": null,
+    "supplierDescription": "Coverall cotton FR navy, reflective tape",
+    "brand": "Portwest",
+    "unit": null,
+    "quantityFactor": 1,
+    "infoRequest": null
+  },
+  {
+    "supplierId": "panco",
+    "unitPrice": 2.05,
+    "leadTime": {
+      "days": 2,
+      "hours": 0
+    },
+    "validity": "14 d",
+    "remarks": null,
+    "supplierDescription": "Welding glove leather 5-finger 35 cm",
+    "brand": "Pan-Co",
+    "unit": null,
+    "quantityFactor": 1,
+    "infoRequest": null
+  },
+  {
+    "supplierId": "hong",
+    "unitPrice": 2.3,
+    "leadTime": {
+      "days": 1,
+      "hours": 12
+    },
+    "validity": "30 d",
+    "remarks": null,
+    "supplierDescription": "Welder's glove split leather",
+    "brand": "Honeywell",
+    "unit": null,
+    "quantityFactor": 1,
+    "infoRequest": null
+  },
+  {
+    "supplierId": "marinet",
+    "unitPrice": 0.55,
+    "leadTime": {
+      "days": 2,
+      "hours": 0
+    },
+    "validity": "30 d",
+    "remarks": null,
+    "supplierDescription": "IMO sign self-adhesive vinyl 150x150 mm",
+    "brand": "Marinet",
+    "unit": null,
+    "quantityFactor": 1,
+    "infoRequest": null
+  },
+  {
+    "supplierId": "ewliner",
+    "unitPrice": null,
+    "leadTime": null,
+    "validity": "",
+    "remarks": null,
+    "supplierDescription": "",
+    "brand": "",
+    "unit": null,
+    "quantityFactor": 1,
+    "infoRequest": "Please provide sample image / exact title of the publication"
+  },
+  {
+    "supplierId": "hansa",
+    "unitPrice": 139,
+    "leadTime": {
+      "days": 6,
+      "hours": 12
+    },
+    "validity": "30 d",
+    "remarks": "Genuine",
+    "supplierDescription": "Danfoss KP35 060-113366 pressure control",
+    "brand": "Danfoss",
+    "unit": null,
+    "quantityFactor": 1,
+    "infoRequest": null
+  },
+  {
+    "supplierId": "pacific",
+    "unitPrice": 115,
+    "leadTime": {
+      "days": 9,
+      "hours": 0
+    },
+    "validity": "7 d",
+    "remarks": null,
+    "supplierDescription": "Pressure switch KP35 0.2–7.5 bar (OEM)",
+    "brand": "Danfoss",
+    "unit": null,
+    "quantityFactor": 1,
+    "infoRequest": null
+  },
+  {
+    "supplierId": "ancor",
+    "unitPrice": 26,
+    "leadTime": {
+      "days": 2,
+      "hours": 18
+    },
+    "validity": "14 d",
+    "remarks": "Equivalent",
+    "supplierDescription": "Impeller kit neoprene 1210-0001-P equiv.",
+    "brand": "Ancor",
+    "unit": null,
+    "quantityFactor": 1,
+    "infoRequest": null
+  },
+  {
+    "supplierId": "zhejiang",
+    "unitPrice": 19.5,
+    "leadTime": {
+      "days": 14,
+      "hours": 0
+    },
+    "validity": "30 d",
+    "remarks": "MOQ 10",
+    "supplierDescription": "Rubber impeller for Jabsco pump 1210",
+    "brand": "ZAW",
+    "unit": null,
+    "quantityFactor": 1,
+    "infoRequest": null
+  },
+  {
+    "supplierId": "selco",
+    "unitPrice": 47,
+    "leadTime": {
+      "days": 3,
+      "hours": 0
+    },
+    "validity": "30 d",
+    "remarks": null,
+    "supplierDescription": "Contactor LC1D25P7 230V AC coil",
+    "brand": "Schneider",
+    "unit": null,
+    "quantityFactor": 1,
+    "infoRequest": null
+  }
+]

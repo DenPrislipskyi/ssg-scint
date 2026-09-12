@@ -1,0 +1,443 @@
+[
+  {
+    "code": "T69128400",
+    "name": "Hex head bolt/nut steel ungalv, M16 x 65 mm",
+    "inStock": true,
+    "costPrice": 0.42,
+    "unit": "set"
+  },
+  {
+    "code": "T69128401",
+    "name": "Hex head bolt steel ungalv, M16 x 65 mm (no nut)",
+    "inStock": true,
+    "costPrice": 0.31,
+    "unit": "pcs"
+  },
+  {
+    "code": "T69133100",
+    "name": "Hex head bolt/nut steel ungalv, M20 x 80 mm",
+    "inStock": true,
+    "costPrice": 0.9,
+    "unit": "set"
+  },
+  {
+    "code": "T69128420",
+    "name": "Hex head bolt/nut S/S A4, M16 x 65 mm",
+    "inStock": false,
+    "costPrice": 0,
+    "unit": "set"
+  },
+  {
+    "code": "T33410300",
+    "name": "Safety sign davit-launched, liferaft 150×150 mm",
+    "inStock": false,
+    "costPrice": 0,
+    "unit": "pcs"
+  },
+  {
+    "code": "T33154300",
+    "name": "Poster discharge of oil, prohibited 297×210 mm",
+    "inStock": false,
+    "costPrice": 0,
+    "unit": "pcs"
+  },
+  {
+    "code": "T85111100",
+    "name": "Goggle welder metal flip-up, 45 mm lens diam",
+    "inStock": true,
+    "costPrice": 6.4,
+    "unit": "prs"
+  },
+  {
+    "code": "T85111300",
+    "name": "Spectacle safety anti-scratch, anti-fog clear",
+    "inStock": true,
+    "costPrice": 2.1,
+    "unit": "prs"
+  },
+  {
+    "code": "T85116300",
+    "name": "Welder gloves five fingers",
+    "inStock": true,
+    "costPrice": 2.25,
+    "unit": "prs"
+  },
+  {
+    "code": "T85116310",
+    "name": "Welder gloves gauntlet 35 cm",
+    "inStock": true,
+    "costPrice": 3.4,
+    "unit": "prs"
+  },
+  {
+    "code": "T65082300",
+    "name": "Rule convex steel metric 5 mtr",
+    "inStock": true,
+    "costPrice": 0.75,
+    "unit": "pcs"
+  },
+  {
+    "code": "T65082200",
+    "name": "Rule convex steel metric 3 mtr",
+    "inStock": true,
+    "costPrice": 0.55,
+    "unit": "pcs"
+  },
+  {
+    "code": "T31237400",
+    "name": "Boilersuit cotton reflect heat, regulate uvprotect navy 3XL",
+    "inStock": false,
+    "costPrice": 0,
+    "unit": "pcs"
+  },
+  {
+    "code": "T31237100",
+    "name": "Boilersuit cotton reflect heat, regulate uvprotect navy L",
+    "inStock": false,
+    "costPrice": 0,
+    "unit": "pcs"
+  },
+  {
+    "code": "T31237200",
+    "name": "Boilersuit cotton reflect heat, regulate uvprotect navy XL",
+    "inStock": false,
+    "costPrice": 0,
+    "unit": "pcs"
+  },
+  {
+    "code": "T31000000",
+    "name": "Xxsafety protective gear",
+    "inStock": false,
+    "costPrice": 0,
+    "unit": "pcs"
+  },
+  {
+    "code": "T19036300",
+    "name": "Sneakers steel toe 25 cm",
+    "inStock": false,
+    "costPrice": 0,
+    "unit": "prs"
+  },
+  {
+    "code": "T19036500",
+    "name": "Sneakers steel toe 26 cm",
+    "inStock": false,
+    "costPrice": 0,
+    "unit": "prs"
+  },
+  {
+    "code": "T19036700",
+    "name": "Sneakers steel toe 27 cm",
+    "inStock": false,
+    "costPrice": 0,
+    "unit": "prs"
+  },
+  {
+    "code": "T19036900",
+    "name": "Sneakers steel toe 29 cm",
+    "inStock": false,
+    "costPrice": 0,
+    "unit": "prs"
+  },
+  {
+    "code": "T37000000",
+    "name": "Xxnautical equipment",
+    "inStock": false,
+    "costPrice": 0,
+    "unit": "pcs"
+  },
+  {
+    "code": "T36859000",
+    "name": "Fire control symbol ISO 17631, space protectd by CO2 f/exting 150×150 mm",
+    "inStock": false,
+    "costPrice": 0,
+    "unit": "pcs"
+  },
+  {
+    "code": "T12000100",
+    "name": "Pressure switch Danfoss KP35 0.2-7.5 bar",
+    "inStock": false,
+    "costPrice": 0,
+    "unit": "pcs"
+  },
+  {
+    "code": "T12000200",
+    "name": "Pressure switch Danfoss KP36 4-12 bar",
+    "inStock": false,
+    "costPrice": 0,
+    "unit": "pcs"
+  },
+  {
+    "code": "T14020100",
+    "name": "Impeller neoprene Jabsco 1210-0001 equiv",
+    "inStock": false,
+    "costPrice": 0,
+    "unit": "pcs"
+  },
+  {
+    "code": "T14020101",
+    "name": "Impeller neoprene Jabsco 1210-0001 genuine",
+    "inStock": false,
+    "costPrice": 0,
+    "unit": "pcs"
+  },
+  {
+    "code": "T22004100",
+    "name": "Hose assy hydraulic 1/2\" BSP F/F 1.2 m 250 bar",
+    "inStock": true,
+    "costPrice": 61,
+    "unit": "pcs"
+  },
+  {
+    "code": "T22110080",
+    "name": "Hose hydraulic 2SN 1/2\" · per metre",
+    "inStock": true,
+    "costPrice": 9.5,
+    "unit": "m"
+  },
+  {
+    "code": "T22004120",
+    "name": "Hose assy hydraulic 3/4\" BSP F/F 1.5 m 250 bar",
+    "inStock": false,
+    "costPrice": 0,
+    "unit": "pcs"
+  },
+  {
+    "code": "T22110100",
+    "name": "Gasket sheet CNAF 1500×1500×3 mm",
+    "inStock": true,
+    "costPrice": 38.5,
+    "unit": "sht"
+  },
+  {
+    "code": "T75075210",
+    "name": "Fire hose layflat 52 mm white 20 m roll",
+    "inStock": true,
+    "costPrice": 96,
+    "unit": "roll"
+  },
+  {
+    "code": "T70070100",
+    "name": "Chain link galv 16 mm · per metre",
+    "inStock": true,
+    "costPrice": 4.1,
+    "unit": "m"
+  },
+  {
+    "code": "T80080012",
+    "name": "Rice long grain bulk · per kg",
+    "inStock": true,
+    "costPrice": 0.9,
+    "unit": "kg"
+  },
+  {
+    "code": "T91000100",
+    "name": "Primer anti-corrosion grey · per litre",
+    "inStock": true,
+    "costPrice": 6.2,
+    "unit": "l"
+  },
+  {
+    "code": "T92000200",
+    "name": "Cotton rags white · per kg",
+    "inStock": true,
+    "costPrice": 1.6,
+    "unit": "kg"
+  },
+  {
+    "code": "T93000300",
+    "name": "Thinner general purpose · per litre",
+    "inStock": true,
+    "costPrice": 2.4,
+    "unit": "l"
+  },
+  {
+    "code": "T22300100",
+    "name": "Pipe copper 15 mm · per metre",
+    "inStock": true,
+    "costPrice": 7.8,
+    "unit": "m"
+  },
+  {
+    "code": "T94000100",
+    "name": "Grease multipurpose EP2 · per kg",
+    "inStock": true,
+    "costPrice": 5.1,
+    "unit": "kg"
+  },
+  {
+    "code": "T94000200",
+    "name": "Lube oil sae 40 · per litre",
+    "inStock": true,
+    "costPrice": 3.3,
+    "unit": "l"
+  },
+  {
+    "code": "T70070200",
+    "name": "Wire rope galv 6×36 16 mm · per metre",
+    "inStock": true,
+    "costPrice": 6.4,
+    "unit": "m"
+  },
+  {
+    "code": "T95000100",
+    "name": "Zinc anode hull type · per kg",
+    "inStock": true,
+    "costPrice": 8.9,
+    "unit": "kg"
+  },
+  {
+    "code": "T91000200",
+    "name": "Deck paint green · per litre",
+    "inStock": true,
+    "costPrice": 9.2,
+    "unit": "l"
+  },
+  {
+    "code": "T80080300",
+    "name": "Milk uht full cream · per litre",
+    "inStock": true,
+    "costPrice": 1.4,
+    "unit": "l"
+  },
+  {
+    "code": "T80080700",
+    "name": "Onions yellow · bag 25 kg",
+    "inStock": true,
+    "costPrice": 19,
+    "unit": "bag"
+  },
+  {
+    "code": "T40100500",
+    "name": "Welding wire ER70S-6 0.8 mm · per kg",
+    "inStock": true,
+    "costPrice": 4.6,
+    "unit": "kg"
+  },
+  {
+    "code": "T22110090",
+    "name": "Gasket sheet CNAF 1500×1500×2 mm",
+    "inStock": true,
+    "costPrice": 29,
+    "unit": "sht"
+  },
+  {
+    "code": "T40100371",
+    "name": "Electrode E6013 dia 3.2 mm 5 kg pack",
+    "inStock": true,
+    "costPrice": 14.2,
+    "unit": "pk"
+  },
+  {
+    "code": "T40100370",
+    "name": "Electrode E6013 dia 3.2 mm 2 kg pack",
+    "inStock": true,
+    "costPrice": 6.8,
+    "unit": "pk"
+  },
+  {
+    "code": "T40100375",
+    "name": "Electrode E6013 dia 3.2 mm 20 kg carton",
+    "inStock": true,
+    "costPrice": 52,
+    "unit": "ctn"
+  },
+  {
+    "code": "T90020114",
+    "name": "Glove nitrile disposable powder-free L box 100",
+    "inStock": true,
+    "costPrice": 6.9,
+    "unit": "box"
+  },
+  {
+    "code": "T90020208",
+    "name": "Glove nitrile-coated work L pair",
+    "inStock": true,
+    "costPrice": 1.85,
+    "unit": "pair"
+  },
+  {
+    "code": "T90020301",
+    "name": "Glove nitrile chemical L 33 cm pair",
+    "inStock": true,
+    "costPrice": 3.1,
+    "unit": "pair"
+  },
+  {
+    "code": "T50050112",
+    "name": "Filter lube oil Fleetguard LF3000",
+    "inStock": true,
+    "costPrice": 18.4,
+    "unit": "pcs"
+  },
+  {
+    "code": "T50050230",
+    "name": "V-belt spb 2500",
+    "inStock": true,
+    "costPrice": 11.2,
+    "unit": "pcs"
+  },
+  {
+    "code": "T50050110",
+    "name": "Filter element fuel Racor 2020PM-OR",
+    "inStock": false,
+    "costPrice": 0,
+    "unit": "pcs"
+  },
+  {
+    "code": "T60060045",
+    "name": "Contactor Schneider LC1D25 230 V",
+    "inStock": false,
+    "costPrice": 0,
+    "unit": "pcs"
+  },
+  {
+    "code": "T60060102",
+    "name": "Floodlight LED 100 W IP66 220 V",
+    "inStock": true,
+    "costPrice": 64,
+    "unit": "pcs"
+  },
+  {
+    "code": "T70070310",
+    "name": "Rope mooring PP 8-STRAND 64 mm 220 m",
+    "inStock": true,
+    "costPrice": 1180,
+    "unit": "coil"
+  },
+  {
+    "code": "T70070420",
+    "name": "Shackle bow d 25 mm galv",
+    "inStock": true,
+    "costPrice": 9.6,
+    "unit": "pcs"
+  },
+  {
+    "code": "T80080011",
+    "name": "Rice long grain 25 kg bag",
+    "inStock": true,
+    "costPrice": 22,
+    "unit": "bag"
+  },
+  {
+    "code": "T80080230",
+    "name": "Chicken whole frozen 1.2 kg ctn 10",
+    "inStock": true,
+    "costPrice": 34,
+    "unit": "ctn"
+  },
+  {
+    "code": "T80080455",
+    "name": "Water mineral 1.5 l ctn 12",
+    "inStock": true,
+    "costPrice": 6.5,
+    "unit": "ctn"
+  },
+  {
+    "code": "T80080610",
+    "name": "Eggs tray 30",
+    "inStock": true,
+    "costPrice": 5.2,
+    "unit": "tray"
+  }
+]

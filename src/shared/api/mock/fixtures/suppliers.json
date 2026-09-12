@@ -1,0 +1,174 @@
+[
+  {
+    "id": "lianseng",
+    "name": "Lian Seng Hardware",
+    "email": "sales@lianseng.example",
+    "onTimePercent": 93,
+    "rankByFamily": {
+      "T69": 1,
+      "T65": 2
+    },
+    "blockedFamilies": [],
+    "historyNote": "31 orders · 2 late"
+  },
+  {
+    "id": "shunzhou",
+    "name": "Shun Zhou Hardware",
+    "email": "quote@shunzhou.example",
+    "onTimePercent": 85,
+    "rankByFamily": {
+      "T69": 2,
+      "T65": 1
+    },
+    "blockedFamilies": [],
+    "historyNote": "18 orders · 3 late"
+  },
+  {
+    "id": "central",
+    "name": "Central Engineering",
+    "email": "eng@central.example",
+    "onTimePercent": 90,
+    "rankByFamily": {
+      "T69": 3,
+      "T22": 2
+    },
+    "blockedFamilies": [],
+    "historyNote": "12 orders · 1 late"
+  },
+  {
+    "id": "oriental",
+    "name": "Oriental Hardware",
+    "email": "sales@orientalhw.example",
+    "onTimePercent": 88,
+    "rankByFamily": {
+      "T19": 1,
+      "T31": 2
+    },
+    "blockedFamilies": [],
+    "historyNote": "22 orders · 3 late"
+  },
+  {
+    "id": "safety",
+    "name": "Safety Innovators (INTL) Pte Ltd",
+    "email": "siorders@safetyinnovators.example",
+    "onTimePercent": 96,
+    "rankByFamily": {
+      "T31": 1,
+      "T85": 1,
+      "T19": 2,
+      "T33": 2
+    },
+    "blockedFamilies": [],
+    "historyNote": "40 orders · all on time"
+  },
+  {
+    "id": "panco",
+    "name": "PAN-CO Hardware & Engineering",
+    "email": "sales13@pancoship.example",
+    "onTimePercent": 79,
+    "rankByFamily": {
+      "T85": 2,
+      "T33": 3,
+      "T36": 2
+    },
+    "blockedFamilies": [],
+    "historyNote": "9 orders · 2 late"
+  },
+  {
+    "id": "hong",
+    "name": "Hong Supply Pte Ltd",
+    "email": "chenjun@hongsupply.example",
+    "onTimePercent": 91,
+    "rankByFamily": {
+      "T85": 3
+    },
+    "blockedFamilies": [],
+    "historyNote": "6 orders · on time"
+  },
+  {
+    "id": "marinet",
+    "name": "Marinet Services Pte Ltd",
+    "email": "quotes@marinet.example",
+    "onTimePercent": 94,
+    "rankByFamily": {
+      "T33": 1,
+      "T36": 1,
+      "T37": 2
+    },
+    "blockedFamilies": [],
+    "historyNote": "27 orders · 1 late"
+  },
+  {
+    "id": "ewliner",
+    "name": "E W Liner Charts & Publications",
+    "email": "sales@ewliner.example",
+    "onTimePercent": 89,
+    "rankByFamily": {
+      "T37": 1
+    },
+    "blockedFamilies": [],
+    "historyNote": "8 orders · on time"
+  },
+  {
+    "id": "hansa",
+    "name": "Hansa Technik",
+    "email": "quote@hansa.example",
+    "onTimePercent": 96,
+    "rankByFamily": {
+      "T12": 1,
+      "T14": 1,
+      "T22": 1,
+      "T50": 1
+    },
+    "blockedFamilies": [],
+    "historyNote": "4 orders · all on time"
+  },
+  {
+    "id": "pacific",
+    "name": "Pacific Valve & Control",
+    "email": "sales@pacificvalve.example",
+    "onTimePercent": 62,
+    "rankByFamily": {
+      "T12": 2
+    },
+    "blockedFamilies": [],
+    "historyNote": "3 orders · 2 late (Jun, Aug)"
+  },
+  {
+    "id": "ancor",
+    "name": "Ancor Marine Parts",
+    "email": "parts@ancor.example",
+    "onTimePercent": 91,
+    "rankByFamily": {
+      "T14": 2,
+      "T50": 2
+    },
+    "blockedFamilies": [],
+    "historyNote": "6 orders · 1 late"
+  },
+  {
+    "id": "zhejiang",
+    "name": "Zhejiang Anchor Works",
+    "email": "export@zaw.example",
+    "onTimePercent": 78,
+    "rankByFamily": {
+      "T69": 4,
+      "T14": 3
+    },
+    "blockedFamilies": [
+      "T12"
+    ],
+    "historyNote": "2 orders · quality issue on KP switches"
+  },
+  {
+    "id": "selco",
+    "name": "Selco Electric",
+    "email": "sales@selco.example",
+    "onTimePercent": 93,
+    "rankByFamily": {
+      "T60": 1
+    },
+    "blockedFamilies": [],
+    "historyNote": "5 orders · on time"
+  }
+]

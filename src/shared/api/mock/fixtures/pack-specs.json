@@ -1,0 +1,32 @@
+[
+  {
+    "code": "T90020114",
+    "unit": "pair",
+    "quantity": 100
+  },
+  {
+    "code": "T40100371",
+    "unit": "kg",
+    "quantity": 5
+  },
+  {
+    "code": "T40100370",
+    "unit": "kg",
+    "quantity": 2
+  },
+  {
+    "code": "T40100375",
+    "unit": "kg",
+    "quantity": 20
+  },
+  {
+    "code": "T75075210",
+    "unit": "m",
+    "quantity": 20
+  },
+  {
+    "code": "T80080700",
+    "unit": "kg",
+    "quantity": 25
+  }
+]
