@@ -18,11 +18,17 @@ export const httpClient = async <T>(path: string, options: RequestOptions = {}):
   const timer = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
+    // Content-Type only when there is content. A GET carrying it is no longer
+    // a "simple" request, so the browser sends a preflight OPTIONS before every
+    // read - a second round trip across the Atlantic for a header describing a
+    // body that is not there.
+    const hasBody = body !== undefined;
+
     const response = await fetch(`${env.apiBaseUrl}${path}`, {
       ...rest,
       signal: controller.signal,
-      headers: { 'Content-Type': 'application/json', ...headers },
-      ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+      headers: { ...(hasBody ? { 'Content-Type': 'application/json' } : {}), ...headers },
+      ...(hasBody ? { body: JSON.stringify(body) } : {}),
     });
 
     if (!response.ok) {
