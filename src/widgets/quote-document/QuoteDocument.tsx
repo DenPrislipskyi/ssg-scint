@@ -32,7 +32,7 @@ export const QuoteDocument = () => {
       <header className="mb-3.5 flex justify-between border-b-2 border-ink pb-2.5">
         <div>
           <h3 className="m-0 text-[17px]">Seven Seas Ship Supply – Singapore</h3>
-          <div className="text-[13px] text-ink2">supply.singapore@sevenseasgroup.com</div>
+          <div className="text-[13px] text-ink2">supply.singapore@sevenseas.example.com</div>
         </div>
         <div className="text-right">
           <b>Quotation {header.quotationNumber}</b>

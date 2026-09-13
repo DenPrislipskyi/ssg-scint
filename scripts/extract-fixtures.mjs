@@ -292,6 +292,6 @@ write('current-user.json', {
   name: 'Priya N.',
   // Підпис під іменем у хедері — формулювання з дизайну v2.
   team: 'Supply Singapore',
-  email: 'supply.singapore@sevenseasgroup.com',
+  email: 'supply.singapore@sevenseas.example.com',
 });
 if (photoMatch) console.log(`  public/mock-assets/${photoMatch[1]}`);
