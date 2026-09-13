@@ -1,4 +1,10 @@
-import { toTableRows, type MatchTableRow } from '@/entities/rfq/lib/matchRows';
+import {
+  customerCodeOf,
+  internalUomOf,
+  sourceOf,
+  toTableRows,
+  type MatchTableRow,
+} from '@/entities/rfq/lib/matchRows';
 import type { MatchLine } from '@/entities/rfq/model/types';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
@@ -20,7 +26,15 @@ const MONO = 'font-mono text-[12.5px]';
 /** Колонки, під які даних ще немає. Порожньо, а не вигадано. */
 const EMPTY = <span className="text-ink4">—</span>;
 
-/** Колір самооцінки моделі: те саме порогове читання, що й у макеті. */
+/** Як знайшовся товар — словами, які читає оператор. */
+const ROUTE: Record<string, string> = {
+  code_confirmed: 'Code confirmed',
+  code_rejected: 'Code overruled',
+  search: 'By description',
+  none: 'Not found',
+};
+
+/** Колір скору пошуку: те саме порогове читання, що й у макеті. */
 const confidenceTone = (value: number): string =>
   value >= 85 ? 'text-ok' : value >= 60 ? 'text-warn' : 'text-bad';
 
@@ -142,22 +156,33 @@ export const ProductMatchingTable = ({ lines }: ProductMatchingTableProps) => {
   );
 };
 
+/**
+ * Один рядок таблиці.
+ *
+ * Ліва половина — слова клієнта. Права читається з одного джерела: рядка
+ * аркуша, який несе цей рядок таблиці. Кандидат заповнює ті самі колонки, що
+ * й підтверджений товар, і відрізняється тільки тим, як виглядає.
+ */
 const Row = ({ row }: { row: MatchTableRow }) => (
-  <tr>
-    <td className={cn(TD, 'text-ink3')}>{row.n}</td>
-    <td className={cn(TD, MONO)}>{row.customerCode || EMPTY}</td>
+  <tr className={cn(row.isCandidate && 'bg-[#FCFCFD]')}>
+    <td className={cn(TD, 'text-ink3 whitespace-nowrap')}>
+      {row.isCandidate ? <span className="text-ink4">{row.line} ·</span> : row.line}
+    </td>
+    <td className={cn(TD, MONO)}>{customerCodeOf(row.item) || EMPTY}</td>
     <td className={cn(TD, 'max-w-[300px]')}>{row.customerDescription}</td>
     <td className={cn(TD, 'text-right')}>{row.quantity || EMPTY}</td>
     <td className={TD_GROUP_END}>{row.uom || EMPTY}</td>
     <td className={cn(TD, MONO)}>{row.itemCode || EMPTY}</td>
     <td className={cn(TD, 'max-w-[320px]')}>{row.itemDescription || EMPTY}</td>
-    <td className={TD}>{EMPTY}</td>
-    <td className={TD}>{EMPTY}</td>
+    <td className={cn(TD, 'whitespace-nowrap')}>{sourceOf(row.item) || EMPTY}</td>
+    <td className={TD}>{internalUomOf(row.item) || EMPTY}</td>
     <td className={cn(TD, 'max-w-[230px]')}>{EMPTY}</td>
     <td className={cn(TD, 'whitespace-nowrap')}>
       <Confidence value={row.confidence} />
     </td>
-    <td className={TD}>{EMPTY}</td>
+    <td className={cn(TD, 'whitespace-nowrap')} title={row.why}>
+      {ROUTE[row.how] ?? EMPTY}
+    </td>
     <td className="border-b border-line2 px-3 py-2 align-top whitespace-nowrap">
       <Button size="xs" onClick={() => undefined}>
         Confirm

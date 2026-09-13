@@ -54,7 +54,7 @@ describe('RfqDetailPage', () => {
     ]) {
       expect(screen.getByText(label)).toBeInTheDocument();
     }
-    expect(screen.getByText('purchasing@almiship.com')).toBeInTheDocument();
+    expect(screen.getByText('purchasing@almi.example.com')).toBeInTheDocument();
     expect(screen.getByText('MV ALMI GLOBE · IMO 9417751')).toBeInTheDocument();
   });
 
@@ -86,6 +86,6 @@ describe('RfqDetailPage', () => {
     await screen.findByRole('heading', { level: 1 });
 
     const row = (await screen.findByText('T69128400')).closest('tr')!;
-    expect(within(row).getByText('96 %')).toBeInTheDocument();
+    expect(within(row).getByText('100 %')).toBeInTheDocument();
   });
 });
