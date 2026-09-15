@@ -29,7 +29,14 @@ export interface MatchCandidate {
  * Дві половини навмисно не змішані — уся суть екрана в їх порівнянні.
  */
 export interface MatchLine {
+  /** Де вона стоїть на сторінці, 1..n. На це показує людина. */
   line: number;
+  /**
+   * Як цю позицію називає запис — власна нумерація читача всередині файла,
+   * з якого вона прийшла. Саме нею адресується підтвердження: екран, який
+   * перенумерує рядки, не має права перенаправити підтвердження на чужий товар.
+   */
+  index: number;
   customerCode: string;
   customerDescription: string;
   quantity: string;
@@ -43,6 +50,11 @@ export interface MatchLine {
   how: MatchRoute;
   why: string;
   candidates: MatchCandidate[];
+  /**
+   * Товар, на якому зупинилася людина. Порожньо, поки ніхто не зупинився —
+   * і порожньо знову, коли передумали: це один стан, а не два.
+   */
+  confirmedItemCode: string;
 }
 
 export interface RfqDetail {

@@ -1,13 +1,26 @@
+import { Fragment, useState } from 'react';
+
+import { useConfirmMatch } from '@/entities/rfq/hooks/useConfirmMatch';
+
+import type { SheetProduct } from '@/entities/products/model/types';
 import {
-  customerCodeOf,
+  asChoice,
+  asManualChoice,
   internalUomOf,
   sourceOf,
   toTableRows,
+  withChoice,
+  type ChosenProduct,
   type MatchTableRow,
 } from '@/entities/rfq/lib/matchRows';
-import type { MatchLine } from '@/entities/rfq/model/types';
+import type { MatchLine, RfqId } from '@/entities/rfq/model/types';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
+import { Confidence } from '@/widgets/product-matching/Confidence';
+import { MatchDetail } from '@/widgets/product-matching/MatchDetail';
+
+/** Порожнє значення показуємо прочерком, а не ховаємо і не вигадуємо. */
+const EMPTY = <span className="text-ink4">—</span>;
 
 /** Шапка групи колонок: «дані клієнта» проти «наш товар». */
 const GROUP_TH =
@@ -23,10 +36,10 @@ const TD = 'border-b border-line2 border-r border-line2 px-3 py-[9px] align-top'
 const TD_GROUP_END = 'border-b border-line2 border-r border-line px-3 py-[9px] align-top';
 const MONO = 'font-mono text-[12.5px]';
 
-/** Колонки, під які даних ще немає. Порожньо, а не вигадано. */
-const EMPTY = <span className="text-ink4">—</span>;
+const COLUMNS = 13;
 
-/** Як знайшовся товар — словами, які читає оператор. */
+/** Як знайшовся товар — словами, які читає оператор. Під статусом, бо це
+ *  відповідь на «звідки він узявся», а не на «що з ним вирішили». */
 const ROUTE: Record<string, string> = {
   code_confirmed: 'Code confirmed',
   code_rejected: 'Code overruled',
@@ -34,28 +47,8 @@ const ROUTE: Record<string, string> = {
   none: 'Not found',
 };
 
-/** Колір скору пошуку: те саме порогове читання, що й у макеті. */
-const confidenceTone = (value: number): string =>
-  value >= 85 ? 'text-ok' : value >= 60 ? 'text-warn' : 'text-bad';
-
-const Confidence = ({ value }: { value: number | null }) => {
-  if (value === null) return EMPTY;
-  const tone = confidenceTone(value);
-  return (
-    <>
-      <span className={cn('font-medium', tone)}>{value} %</span>
-      {/* Смужка повторює число візуально — око ловить її швидше за цифру. */}
-      <i className="mt-[5px] block h-[5px] w-14 overflow-hidden rounded-[3px] bg-line2">
-        <b
-          className={cn('block h-[5px] bg-current', tone)}
-          style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
-        />
-      </i>
-    </>
-  );
-};
-
 export interface ProductMatchingTableProps {
+  rfqId: RfqId;
   lines: MatchLine[];
 }
 
@@ -63,12 +56,58 @@ export interface ProductMatchingTableProps {
  * Рядки RFQ поруч із тим, що ми знайшли в себе.
  *
  * Ліва половина — слова клієнта, як він їх написав, без перерахунків. Права —
- * наша. Одна позиція може дати кілька рядків: коли впевненого збігу немає,
- * показуються всі кандидати, яких розглядали.
+ * наша, і в ній рівно один товар: підтверджений, або найкращий кандидат як
+ * пропозиція. Одна позиція RFQ — один рядок таблиці, завжди.
+ *
+ * Решта кандидатів не зникла: вона під рядком, який на неї розкривається.
+ * П'ять кандидатів однієї позиції, розкладені в таблицю, читаються як п'ять
+ * позицій замовлення — а це не те, що просив клієнт.
  */
-export const ProductMatchingTable = ({ lines }: ProductMatchingTableProps) => {
-  const rows = toTableRows(lines);
-  const matched = rows.filter((row) => row.itemCode && !row.isCandidate).length;
+export const ProductMatchingTable = ({ rfqId, lines }: ProductMatchingTableProps) => {
+  const confirm = useConfirmMatch(rfqId);
+  // Підтверджено людиною, а не знайдено агентом: лічильник угорі рахує роботу,
+  // яка лишилася, і знайдене без підтвердження її не зменшує.
+  const matched = lines.filter((line) => line.confirmedItemCode).length;
+  // Одна відкрита позиція за раз: розгорнуті всі одразу — це та сама стіна
+  // кандидатів, від якої цей екран і йде.
+  const [openKey, setOpenKey] = useState<string | null>(null);
+  // Що оператор вибрав із топ-5, по одному на позицію. Порожньо означає «те,
+  // що запропонував пошук», а не «нічого»: рядок без вибору показує першого
+  // кандидата, бо позиція без товару праворуч — це позиція, яку нічим читати.
+  const [chosen, setChosen] = useState<Record<string, ChosenProduct>>({});
+
+  // Що показувати праворуч: вибір оператора, а без нього — підтверджене, а
+  // без нього — те, що запропонував пошук.
+  // Праворуч стоїть вибір оператора, а без нього — те, що прийшло з бекенда:
+  // підтверджений товар або пропозиція пошуку.
+  const rows = toTableRows(lines).map((row) => withChoice(row, chosen[row.key]));
+
+  /** Інший товар знімає підтвердження: не можна лишити «Matched» на тому, чого
+   *  на екрані вже немає. Той самий — не чіпаємо, бо нічого не змінилося. */
+  const pick = (row: MatchTableRow, product: ChosenProduct) => {
+    setChosen((picked) => ({ ...picked, [row.key]: product }));
+    if (row.confirmedItemCode && row.confirmedItemCode !== product.itemCode) {
+      confirm.mutate({ index: row.index, itemCode: null });
+    }
+  };
+
+  /**
+   * Кожна позиція, яку лишилося підтвердити, на тому товарі, що зараз у неї
+   * праворуч. Позиції без товару пропускаємо: підтверджувати нема чого, і
+   * порожній код усе одно не пройшов би перевірку аркушем.
+   */
+  const proposed = rows
+    .filter((row) => !row.confirmedItemCode && row.itemCode)
+    .map((row) => ({ index: row.index, itemCode: row.itemCode }));
+
+  /** Кандидат зі списку. Його дані вже на руках — шукати нема чого. */
+  const pickCandidate = (row: MatchTableRow, itemCode: string) => {
+    const candidate = row.candidates.find((one) => one.itemCode === itemCode);
+    if (candidate) pick(row, asChoice(candidate));
+  };
+
+  const pickManually = (row: MatchTableRow, product: SheetProduct) =>
+    pick(row, asManualChoice(product));
 
   return (
     <div className="overflow-hidden rounded-xl border border-line bg-white">
@@ -78,7 +117,12 @@ export const ProductMatchingTable = ({ lines }: ProductMatchingTableProps) => {
           {matched} of {lines.length} line(s) matched
         </span>
         <span className="ml-auto" />
-        <Button className="px-3" onClick={() => undefined}>
+        <span className="text-[12px] text-ink4">Click a line to review its match</span>
+        <Button
+          className="px-3"
+          disabled={proposed.length === 0}
+          onClick={() => confirm.mutate(proposed)}
+        >
           Accept all proposed
         </Button>
       </div>
@@ -87,7 +131,11 @@ export const ProductMatchingTable = ({ lines }: ProductMatchingTableProps) => {
         <table className="w-full min-w-[1340px] border-separate border-spacing-0 text-[13.5px]">
           <thead>
             <tr>
-              <th scope="colgroup" colSpan={5} className={cn(GROUP_TH, 'bg-[#F3F4F6]', TH_GROUP_END)}>
+              <th
+                scope="colgroup"
+                colSpan={5}
+                className={cn(GROUP_TH, 'bg-[#F3F4F6]', TH_GROUP_END)}
+              >
                 CUSTOMER RFQ DATA
               </th>
               <th scope="colgroup" colSpan={8} className={cn(GROUP_TH, 'bg-[#F9FAFB]')}>
@@ -140,14 +188,35 @@ export const ProductMatchingTable = ({ lines }: ProductMatchingTableProps) => {
           <tbody>
             {rows.length === 0 && (
               <tr>
-                <td colSpan={13} className="px-3 py-5 text-ink3">
+                <td colSpan={COLUMNS} className="px-3 py-5 text-ink3">
                   This RFQ has no matched lines yet
                 </td>
               </tr>
             )}
 
             {rows.map((row) => (
-              <Row key={row.key} row={row} />
+              <Fragment key={row.key}>
+                <Row
+                  row={row}
+                  open={openKey === row.key}
+                  onToggle={() => setOpenKey(openKey === row.key ? null : row.key)}
+                  onConfirm={() => confirm.mutate({ index: row.index, itemCode: row.itemCode })}
+                />
+                {openKey === row.key && (
+                  <tr>
+                    <td
+                      colSpan={COLUMNS}
+                      className="border-b border-line2 bg-[#FAFAFB] px-4 py-3.5"
+                    >
+                      <MatchDetail
+                        row={row}
+                        onPick={(itemCode) => pickCandidate(row, itemCode)}
+                        onPickManually={(product) => pickManually(row, product)}
+                      />
+                    </td>
+                  </tr>
+                )}
+              </Fragment>
             ))}
           </tbody>
         </table>
@@ -157,36 +226,79 @@ export const ProductMatchingTable = ({ lines }: ProductMatchingTableProps) => {
 };
 
 /**
- * Один рядок таблиці.
+ * Один рядок таблиці — одна позиція RFQ.
  *
- * Ліва половина — слова клієнта. Права читається з одного джерела: рядка
- * аркуша, який несе цей рядок таблиці. Кандидат заповнює ті самі колонки, що
- * й підтверджений товар, і відрізняється тільки тим, як виглядає.
+ * Ліва половина — слова клієнта, включно з кодом, який написав саме він.
+ * Права читається з рядка аркуша, який несе цю позицію: підтвердженого або
+ * запропонованого. Скільки ще кандидатів за ним стоїть, каже лічильник у
+ * колонці статусу; побачити їх можна, розкривши рядок.
  */
-const Row = ({ row }: { row: MatchTableRow }) => (
-  <tr className={cn(row.isCandidate && 'bg-[#FCFCFD]')}>
-    <td className={cn(TD, 'text-ink3 whitespace-nowrap')}>
-      {row.isCandidate ? <span className="text-ink4">{row.line} ·</span> : row.line}
-    </td>
-    <td className={cn(TD, MONO)}>{customerCodeOf(row.item) || EMPTY}</td>
-    <td className={cn(TD, 'max-w-[300px]')}>{row.customerDescription}</td>
-    <td className={cn(TD, 'text-right')}>{row.quantity || EMPTY}</td>
-    <td className={TD_GROUP_END}>{row.uom || EMPTY}</td>
-    <td className={cn(TD, MONO)}>{row.itemCode || EMPTY}</td>
-    <td className={cn(TD, 'max-w-[320px]')}>{row.itemDescription || EMPTY}</td>
-    <td className={cn(TD, 'whitespace-nowrap')}>{sourceOf(row.item) || EMPTY}</td>
-    <td className={TD}>{internalUomOf(row.item) || EMPTY}</td>
-    <td className={cn(TD, 'max-w-[230px]')}>{EMPTY}</td>
-    <td className={cn(TD, 'whitespace-nowrap')}>
-      <Confidence value={row.confidence} />
-    </td>
-    <td className={cn(TD, 'whitespace-nowrap')} title={row.why}>
-      {ROUTE[row.how] ?? EMPTY}
-    </td>
-    <td className="border-b border-line2 px-3 py-2 align-top whitespace-nowrap">
-      <Button size="xs" onClick={() => undefined}>
-        Confirm
-      </Button>
-    </td>
-  </tr>
-);
+const Row = ({
+  row,
+  open,
+  onToggle,
+  onConfirm,
+}: {
+  row: MatchTableRow;
+  open: boolean;
+  onToggle: () => void;
+  onConfirm: () => void;
+}) => {
+  const confirmed = row.confirmedItemCode !== '';
+  return (
+    <tr
+      className={cn('cursor-pointer', open ? '[&>td]:bg-sel' : 'hover:[&>td]:bg-[#FAFAFA]')}
+      tabIndex={0}
+      aria-expanded={open}
+      onClick={onToggle}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onToggle();
+        }
+      }}
+    >
+      <td className={cn(TD, 'text-ink3 whitespace-nowrap')}>{row.line}</td>
+      <td className={cn(TD, MONO)}>{row.customerCode || EMPTY}</td>
+      <td className={cn(TD, 'max-w-[300px]')}>{row.customerDescription}</td>
+      <td className={cn(TD, 'text-right')}>{row.quantity || EMPTY}</td>
+      <td className={TD_GROUP_END}>{row.uom || EMPTY}</td>
+      <td className={cn(TD, MONO)}>{row.itemCode || EMPTY}</td>
+      <td className={cn(TD, 'max-w-[320px]')}>{row.itemDescription || EMPTY}</td>
+      <td className={cn(TD, 'whitespace-nowrap')}>{sourceOf(row.item) || EMPTY}</td>
+      <td className={TD}>{internalUomOf(row.item) || EMPTY}</td>
+      <td className={cn(TD, 'max-w-[230px]')}>{EMPTY}</td>
+      <td className={cn(TD, 'whitespace-nowrap')}>
+        <Confidence value={row.confidence} />
+      </td>
+      <td className={cn(TD, 'whitespace-nowrap')} title={row.why}>
+        <b className={cn('font-medium', confirmed ? 'text-ok' : 'text-warn')}>
+          {confirmed ? 'Matched' : 'Review Needed'}
+        </b>
+        <small className="mt-[3px] block text-[12px] text-ink3">
+          {ROUTE[row.how] ?? '—'}
+          {row.candidates.length > 1 && ` · ${row.candidates.length} candidate(s)`}
+        </small>
+      </td>
+      <td className="border-b border-line2 px-3 py-2 align-top whitespace-nowrap">
+        <Button
+          size="xs"
+          variant={confirmed ? 'default' : 'primary'}
+          // `disabled` тут означає «нема чого робити», а не «недоступно»:
+          // підтверджене вже підтверджене. Тому вимикаємо вицвітання, інакше
+          // зелений із макета читався б як сірий.
+          className={cn(
+            confirmed && 'border-ok bg-ok-soft text-ok hover:bg-ok-soft disabled:opacity-100',
+          )}
+          disabled={confirmed || !row.itemCode}
+          onClick={(event) => {
+            event.stopPropagation();
+            onConfirm();
+          }}
+        >
+          {confirmed ? 'Confirmed ✓' : 'Confirm'}
+        </Button>
+      </td>
+    </tr>
+  );
+};

@@ -1,9 +1,12 @@
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { RfqDetailPage } from '@/pages/rfq-detail/RfqDetailPage';
 import { renderWithProviders } from '@/test/renderWithProviders';
+
+/** Поля фільтрів дебаунсяться, тож чекати доводиться довше за рендер. */
+const SLOW = { timeout: 3000 };
 
 const render = () =>
   renderWithProviders(<RfqDetailPage />, {
@@ -85,7 +88,335 @@ describe('RfqDetailPage', () => {
     render();
     await screen.findByRole('heading', { level: 1 });
 
+    const row = (await screen.findByText('T69133100')).closest('tr')!;
+    expect(within(row).getByText('70 %')).toBeInTheDocument();
+  });
+
+  it('shows no percentage on a line its code confirmed', async () => {
+    // Там доказом є код, а не слова. Число було б вигаданим.
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
     const row = (await screen.findByText('T69128400')).closest('tr')!;
-    expect(within(row).getByText('100 %')).toBeInTheDocument();
+    expect(within(row).queryByText(/%/)).not.toBeInTheDocument();
+  });
+
+  it('gives every RFQ line one row, however many candidates it has', async () => {
+    // Позиція 2 має двох кандидатів. Розкладені в таблицю, вони читалися б як
+    // дві позиції замовлення, яких клієнт не просив.
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    const body = (await screen.findByText('T69128400')).closest('tbody')!;
+    const lines = within(body).getAllByRole('row');
+    expect(lines).toHaveLength(3);
+    expect(lines.map((row) => within(row).getAllByRole('cell')[0]?.textContent)).toEqual([
+      '1',
+      '2',
+      '3',
+    ]);
+  });
+
+  it('proposes the best candidate in the row and hides the rest', async () => {
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    expect(await screen.findByText('T69133100')).toBeInTheDocument();
+    expect(screen.queryByText('T69114500')).not.toBeInTheDocument();
+  });
+
+  it('opens the candidates under the line it was asked about', async () => {
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    await user.click((await screen.findByText('T69133100')).closest('tr')!);
+
+    expect(screen.getByText('Candidates from item DB')).toBeInTheDocument();
+    expect(screen.getByText('HEX HEAD BOLT/NUT STEEL UNGALV, M8 X 50MM')).toBeInTheDocument();
+    expect(screen.getByText('best match')).toBeInTheDocument();
+    expect(screen.getByText('alternative')).toBeInTheDocument();
+  });
+
+  it('closes the open line when it is clicked again', async () => {
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    const row = (await screen.findByText('T69133100')).closest('tr')!;
+    await user.click(row);
+    await user.click(row);
+
+    expect(screen.queryByText('Candidates from item DB')).not.toBeInTheDocument();
+  });
+
+  it('keeps only one line open at a time', async () => {
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    await user.click((await screen.findByText('T69133100')).closest('tr')!);
+    await user.click((await screen.findByText('T69128400')).closest('tr')!);
+
+    expect(screen.getAllByText('Candidates from item DB')).toHaveLength(1);
+    expect(screen.getByText('confirmed by code')).toBeInTheDocument();
+  });
+
+  it('moves the chosen candidate into the row and the compare table', async () => {
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    const row = (await screen.findByText('T69133100')).closest('tr')!;
+    await user.click(row);
+    await user.click(screen.getByText('HEX HEAD BOLT/NUT STEEL UNGALV, M8 X 50MM'));
+
+    // Права половина рядка тепер про обраний товар.
+    expect(within(row).getByText('T69114500')).toBeInTheDocument();
+    expect(within(row).getByText('50 %')).toBeInTheDocument();
+    expect(within(row).getByText('GPL')).toBeInTheDocument();
+
+    // І табличка порівняння теж - інакше вона показувала б інший товар, ніж
+    // рядок над нею.
+    const compare = screen.getByText('Item code').closest('table')!;
+    expect(within(compare).getByText('T69114500')).toBeInTheDocument();
+  });
+
+  it('leaves the customer half alone when a candidate is chosen', async () => {
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    const row = (await screen.findByText('T69133100')).closest('tr')!;
+    await user.click(row);
+    await user.click(screen.getByText('HEX HEAD BOLT/NUT STEEL UNGALV, M8 X 50MM'));
+
+    expect(
+      within(row).getByText('bolts hex head with nuts, M20 x 80, full thread'),
+    ).toBeInTheDocument();
+    expect(within(row).getByText('12')).toBeInTheDocument();
+  });
+
+  it('marks the chosen candidate as the one that is showing', async () => {
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    await user.click((await screen.findByText('T69133100')).closest('tr')!);
+    const second = screen.getByText('HEX HEAD BOLT/NUT STEEL UNGALV, M8 X 50MM').closest('button')!;
+    await user.click(second);
+
+    expect(second).toHaveAttribute('aria-pressed', 'true');
+    expect(
+      screen.getByText('HEX HEAD BOLT/NUT STEEL UNGALV, M20 X 80MM').closest('button'),
+    ).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('keeps a choice made before the line was closed', async () => {
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    const row = (await screen.findByText('T69133100')).closest('tr')!;
+    await user.click(row);
+    await user.click(screen.getByText('HEX HEAD BOLT/NUT STEEL UNGALV, M8 X 50MM'));
+    await user.click(row);
+
+    expect(screen.queryByText('Candidates from item DB')).not.toBeInTheDocument();
+    expect(within(row).getByText('T69114500')).toBeInTheDocument();
+  });
+
+  it('starts every line as Review Needed', async () => {
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    expect(screen.getAllByText('Review Needed')).toHaveLength(3);
+    expect(screen.queryByText('Matched')).not.toBeInTheDocument();
+    expect(screen.getByText('0 of 3 line(s) matched')).toBeInTheDocument();
+  });
+
+  it('settles a line on the chosen product when Confirm is pressed', async () => {
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    const row = (await screen.findByText('T69133100')).closest('tr')!;
+    await user.click(row);
+    await user.click(screen.getByText('HEX HEAD BOLT/NUT STEEL UNGALV, M8 X 50MM'));
+    await user.click(within(row).getByRole('button', { name: 'Confirm' }));
+
+    expect(await within(row).findByText('Matched')).toBeInTheDocument();
+    const button = within(row).getByRole('button', { name: 'Confirmed ✓' });
+    expect(button).toBeDisabled();
+    expect(await screen.findByText('1 of 3 line(s) matched')).toBeInTheDocument();
+  });
+
+  it('un-settles a line when a different product is chosen', async () => {
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    const row = (await screen.findByText('T69133100')).closest('tr')!;
+    await user.click(row);
+    await user.click(within(row).getByRole('button', { name: 'Confirm' }));
+    await within(row).findByText('Matched');
+
+    await user.click(screen.getByText('HEX HEAD BOLT/NUT STEEL UNGALV, M8 X 50MM'));
+
+    expect(await within(row).findByText('Review Needed')).toBeInTheDocument();
+    expect(await screen.findByText('0 of 3 line(s) matched')).toBeInTheDocument();
+  });
+
+  it('cannot confirm a line the sheet had nothing for', async () => {
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    const row = (await screen.findByText(/turbocharger cartridge/)).closest('tr')!;
+
+    expect(within(row).getByRole('button', { name: 'Confirm' })).toBeDisabled();
+  });
+
+  it('offers the whole sheet when none of the candidates is right', async () => {
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    await user.click((await screen.findByText('T69133100')).closest('tr')!);
+    await user.click(screen.getByRole('button', { name: 'Or pick manually' }));
+
+    expect(screen.getByLabelText('Filter by item code')).toBeInTheDocument();
+    expect(screen.getByLabelText('Filter by item description')).toBeInTheDocument();
+    // Товар, якого в кандидатах цієї позиції немає.
+    expect(
+      await screen.findByText('WELDER GLOVES FIVE FINGERS', undefined, SLOW),
+    ).toBeInTheDocument();
+  });
+
+  it('narrows the sheet by item code', async () => {
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    await user.click((await screen.findByText('T69133100')).closest('tr')!);
+    await user.click(screen.getByRole('button', { name: 'Or pick manually' }));
+    await user.type(screen.getByLabelText('Filter by item code'), 'T851');
+
+    // Список лишається на місці, поки летить наступний запит, тож чекаємо, аж
+    // поки справдиться і те, і те - інакше зловили б проміжний порожній кадр.
+    // Довший бюджет, бо чекаємо на дебаунс поля, а не на рендер.
+    await waitFor(() => {
+      expect(screen.getByText('WELDER GLOVES FIVE FINGERS')).toBeInTheDocument();
+      expect(screen.queryByText('RULE CONVEX STEEL METRIC 5MTR')).not.toBeInTheDocument();
+    }, SLOW);
+  });
+
+  it('narrows the sheet by item description', async () => {
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    await user.click((await screen.findByText('T69133100')).closest('tr')!);
+    await user.click(screen.getByRole('button', { name: 'Or pick manually' }));
+    await user.type(screen.getByLabelText('Filter by item description'), 'liferaft');
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('SAFETY SIGN DAVIT-LAUNCHED LIFERAFT 150 X 150 MM'),
+      ).toBeInTheDocument();
+      expect(screen.queryByText('WELDER GLOVES FIVE FINGERS')).not.toBeInTheDocument();
+    }, SLOW);
+  });
+
+  it('moves a product picked by hand into the row and the compare table', async () => {
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    const row = (await screen.findByText('T69133100')).closest('tr')!;
+    await user.click(row);
+    await user.click(screen.getByRole('button', { name: 'Or pick manually' }));
+    await user.click(await screen.findByText('WELDER GLOVES FIVE FINGERS', undefined, SLOW));
+
+    expect(within(row).getByText('T85116300')).toBeInTheDocument();
+    const compare = screen.getByText('Item code').closest('table')!;
+    expect(within(compare).getByText('T85116300')).toBeInTheDocument();
+  });
+
+  it('gives a product picked by hand no percentage', async () => {
+    // Людина обрала його сама; покриття слів не було причиною.
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    const row = (await screen.findByText('T69133100')).closest('tr')!;
+    await user.click(row);
+    await user.click(screen.getByRole('button', { name: 'Or pick manually' }));
+    await user.click(await screen.findByText('WELDER GLOVES FIVE FINGERS', undefined, SLOW));
+
+    expect(within(row).queryByText(/%/)).not.toBeInTheDocument();
+  });
+
+  it('settles a line on a product that was never on its shortlist', async () => {
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    const row = (await screen.findByText('T69133100')).closest('tr')!;
+    await user.click(row);
+    await user.click(screen.getByRole('button', { name: 'Or pick manually' }));
+    await user.click(await screen.findByText('WELDER GLOVES FIVE FINGERS', undefined, SLOW));
+    await user.click(within(row).getByRole('button', { name: 'Confirm' }));
+
+    expect(await within(row).findByText('Matched')).toBeInTheDocument();
+    expect(within(row).getByRole('button', { name: 'Confirmed ✓' })).toBeDisabled();
+  });
+
+  it('settles every line that has something to settle, at once', async () => {
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    await user.click(screen.getByRole('button', { name: 'Accept all proposed' }));
+
+    // Дві з трьох: третій позиції аркуш не має чого запропонувати.
+    expect(await screen.findByText('2 of 3 line(s) matched')).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: 'Confirmed ✓' })).toHaveLength(2);
+  });
+
+  it('accepts the operator own pick, not the proposal it replaced', async () => {
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    const row = (await screen.findByText('T69133100')).closest('tr')!;
+    await user.click(row);
+    await user.click(screen.getByText('HEX HEAD BOLT/NUT STEEL UNGALV, M8 X 50MM'));
+    await user.click(screen.getByRole('button', { name: 'Accept all proposed' }));
+
+    await screen.findByText('2 of 3 line(s) matched');
+    expect(within(row).getByText('T69114500')).toBeInTheDocument();
+  });
+
+  it('has nothing left to accept once everything is settled', async () => {
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    const accept = screen.getByRole('button', { name: 'Accept all proposed' });
+    await user.click(accept);
+    await screen.findByText('2 of 3 line(s) matched');
+
+    expect(accept).toBeDisabled();
+  });
+
+  it('says so when the sheet had nothing for a line', async () => {
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    const row = (await screen.findByText(/turbocharger cartridge/)).closest('tr')!;
+    await user.click(row);
+
+    expect(screen.getByText('The sheet had nothing to offer for this line.')).toBeInTheDocument();
   });
 });

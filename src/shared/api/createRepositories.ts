@@ -1,14 +1,17 @@
 import type { CatalogRepository } from '@/entities/catalog/api/catalogRepository';
 import type { QuoteRepository } from '@/entities/quote/api/quoteRepository';
+import type { ProductRepository } from '@/entities/products/api/productRepository';
 import type { RfqRepository } from '@/entities/rfq/api/rfqRepository';
 import type { SupplierRepository } from '@/entities/supplier/api/supplierRepository';
 import { env } from '@/shared/config/env';
 import { HttpCatalogRepository } from '@/shared/api/http/HttpCatalogRepository';
 import { HttpQuoteRepository } from '@/shared/api/http/HttpQuoteRepository';
+import { HttpProductRepository } from '@/shared/api/http/HttpProductRepository';
 import { HttpRfqRepository } from '@/shared/api/http/HttpRfqRepository';
 import { HttpSupplierRepository } from '@/shared/api/http/HttpSupplierRepository';
 import { MockCatalogRepository } from '@/shared/api/mock/MockCatalogRepository';
 import { MockQuoteRepository } from '@/shared/api/mock/MockQuoteRepository';
+import { MockProductRepository } from '@/shared/api/mock/MockProductRepository';
 import { MockRfqRepository } from '@/shared/api/mock/MockRfqRepository';
 import { MockStore } from '@/shared/api/mock/MockStore';
 import { MockSupplierRepository } from '@/shared/api/mock/MockSupplierRepository';
@@ -16,6 +19,8 @@ import { MockSupplierRepository } from '@/shared/api/mock/MockSupplierRepository
 export interface Repositories {
   quotes: QuoteRepository;
   rfqs: RfqRepository;
+  /** Аркуш товарів для ручного вибору на екрані мапінгу. */
+  products: ProductRepository;
   catalog: CatalogRepository;
   suppliers: SupplierRepository;
 }
@@ -30,6 +35,7 @@ export const createMockRepositories = (): Repositories => {
   return {
     quotes: new MockQuoteRepository(new MockStore(), getCatalog),
     rfqs: new MockRfqRepository(),
+    products: new MockProductRepository(),
     catalog,
     suppliers: new MockSupplierRepository(),
   };
@@ -55,7 +61,7 @@ const createHybridRepositories = (): Repositories => {
   });
 
   // RFQ теж із бекенда: увесь екран мапінгу живе на реальних даних агента.
-  return { ...mock, quotes, rfqs: http_rfqs };
+  return { ...mock, quotes, rfqs: http_rfqs, products: new HttpProductRepository() };
 };
 
 /**
@@ -67,6 +73,7 @@ export const createRepositories = (): Repositories => {
     return {
       quotes: new HttpQuoteRepository(),
       rfqs: new HttpRfqRepository(),
+      products: new HttpProductRepository(),
       catalog: new HttpCatalogRepository(),
       suppliers: new HttpSupplierRepository(),
     };

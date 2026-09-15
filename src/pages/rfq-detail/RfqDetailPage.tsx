@@ -54,7 +54,7 @@ export const RfqDetailPage = () => {
 
       <RfqStages detail={`${rfq.lines.length} line(s) to confirm`} />
 
-      <ProductMatchingTable lines={rfq.lines} />
+      <ProductMatchingTable rfqId={rfqId} lines={rfq.lines} />
     </div>
   );
 };
