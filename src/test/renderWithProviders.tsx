@@ -5,7 +5,7 @@ import { createMemoryRouter, Navigate, RouterProvider, type RouteObject } from '
 
 import { AppLayout } from '@/app/AppLayout';
 import { RepositoriesProvider } from '@/app/providers/RepositoriesProvider';
-import { createMockRepositories } from '@/shared/api/createRepositories';
+import { createMockRepositories, type Repositories } from '@/shared/api/createRepositories';
 import { LightboxProvider } from '@/shared/ui/Lightbox';
 import { ToastProvider } from '@/shared/ui/Toast';
 
@@ -14,14 +14,31 @@ export interface RenderOptions {
   initialEntries?: string[];
   /** Вкладені маршрути для сторінок з <Outlet/>. */
   children?: RouteObject[];
+  /**
+   * Сусідні маршрути під тим самим лейаутом. Потрібні там, де перевіряють
+   * перехід: посилання на маршрут, якого в роутері немає, нікуди не веде.
+   */
+  siblings?: RouteObject[];
   /** Куди редиректити з індексного маршруту. */
   initialTab?: string;
+  /**
+   * Репозиторії, які тест тримає й сам. Потрібні там, де перевіряють, що
+   * побачить екран, коли запис змінився не через нього.
+   */
+  repositories?: Repositories;
 }
 
 /** Монтує сторінку з повним набором провайдерів і mock-репозиторіями. */
 export const renderWithProviders = (
   element: ReactElement,
-  { path = '/quotes', initialEntries = ['/quotes'], children, initialTab }: RenderOptions = {},
+  {
+    path = '/quotes',
+    initialEntries = ['/quotes'],
+    children,
+    siblings = [],
+    initialTab,
+    repositories,
+  }: RenderOptions = {},
 ): RenderResult => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
@@ -38,7 +55,7 @@ export const renderWithProviders = (
     [
       {
         element: <AppLayout />,
-        children: [{ path, element, ...(nested ? { children: nested } : {}) }],
+        children: [{ path, element, ...(nested ? { children: nested } : {}) }, ...siblings],
       },
     ],
     { initialEntries },
@@ -46,7 +63,7 @@ export const renderWithProviders = (
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <RepositoriesProvider value={createMockRepositories()}>
+      <RepositoriesProvider value={repositories ?? createMockRepositories()}>
         <ToastProvider>
           <LightboxProvider>
             <Suspense fallback={<div>Loading…</div>}>

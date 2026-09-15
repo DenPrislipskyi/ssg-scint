@@ -28,8 +28,23 @@ describe('RfqListPage', () => {
       .getAllByRole('cell')
       .map((cell) => cell.textContent);
 
-    // RFQ reference, Customer RFQ ref and Lines have no source yet.
-    expect([cells[0], cells[3], cells[4]]).toEqual(['—', '—', '—']);
+    // Customer RFQ ref is the last column with no source behind it. The RFQ
+    // reference and the line count now have one.
+    expect(cells[3]).toBe('—');
+    expect(cells[0]).toBe('E114_26');
+  });
+
+  it('counts the lines its matching screen will show', async () => {
+    renderWithProviders(<RfqListPage />, { path: '/rfqs', initialEntries: ['/rfqs'] });
+
+    const row = (await screen.findByText('Nordic Aurora Shipping')).closest('tr')!;
+    const cells = within(row)
+      .getAllByRole('cell')
+      .map((cell) => cell.textContent);
+
+    // A number, and not a dash: this RFQ was read, and its lines were counted.
+    expect(cells[4]).toMatch(/^\d+$/);
+    expect(cells[4]).not.toBe('0');
   });
 
   it('renders the six columns of the RFQ list', async () => {

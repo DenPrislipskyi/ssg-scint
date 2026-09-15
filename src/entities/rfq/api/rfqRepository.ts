@@ -13,4 +13,9 @@ export interface RfqRepository {
    * екрані не має права переадресувати підтвердження.
    */
   confirm(id: RfqId, index: number, itemCode: string | null): Promise<void>;
+  /**
+   * Записати, скільки постачальник просить за одиницю цієї позиції, або
+   * забути його ціну (`unitPrice: null`).
+   */
+  price(id: RfqId, index: number, unitPrice: number | null): Promise<void>;
 }

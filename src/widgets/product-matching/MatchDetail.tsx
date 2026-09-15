@@ -6,6 +6,7 @@ import {
   sourceOf,
   type MatchTableRow,
 } from '@/entities/rfq/lib/matchRows';
+import { shownSupplier } from '@/entities/rfq/lib/sourcing';
 import type { MatchCandidate } from '@/entities/rfq/model/types';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
@@ -60,6 +61,7 @@ const Option = ({
   code,
   description,
   under,
+  supplier,
   confidence,
   mark,
   chosen,
@@ -68,6 +70,8 @@ const Option = ({
   code: string;
   description: string;
   under: string;
+  /** Хто його постачає. Порожньо для складського: постачальник там ми самі. */
+  supplier: string;
   confidence: number | null;
   mark: string;
   chosen: boolean;
@@ -86,6 +90,11 @@ const Option = ({
       <small className="mt-0.5 block font-mono text-[11.5px] font-normal text-ink3">
         {[code, under].filter(Boolean).join(' · ')}
       </small>
+      {/* Не мономоноширинним і окремим рядком: це назва фірми, а не код, і
+          підтвердження цього варіанта ставить у рядок саме її. */}
+      {supplier && (
+        <small className="mt-0.5 block truncate font-normal text-ink3">Supplier · {supplier}</small>
+      )}
     </span>
     <span className="text-right whitespace-nowrap">
       <Confidence value={confidence} bar={false} />
@@ -159,6 +168,7 @@ export const MatchDetail = ({ row, onPick, onPickManually }: MatchDetailProps) =
             code={row.itemCode}
             description={row.itemDescription}
             under={under}
+            supplier={shownSupplier(row.item)}
             confidence={row.confidence}
             mark={row.how === 'code_confirmed' ? 'confirmed by code' : 'picked by hand'}
             chosen
@@ -173,6 +183,7 @@ export const MatchDetail = ({ row, onPick, onPickManually }: MatchDetailProps) =
             under={[sourceOf(candidate.item), internalUomOf(candidate.item)]
               .filter(Boolean)
               .join(' · ')}
+            supplier={shownSupplier(candidate.item)}
             confidence={candidate.confidence}
             mark={markOf(candidate, row, index === 0)}
             chosen={candidate.itemCode === row.itemCode}

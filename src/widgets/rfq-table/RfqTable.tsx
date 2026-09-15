@@ -68,11 +68,11 @@ export const RfqTable = ({ rows, onOpen, isLoading = false }: RfqTableProps) => 
         {!isLoading &&
           rows.map((rfq) => (
             <tr key={rfq.rowKey}>
-              <td className={`${TD} font-mono text-[12.5px]`}>{EMPTY}</td>
+              <td className={`${TD} font-mono text-[12.5px]`}>{rfq.reference || EMPTY}</td>
               <td className={`${TD} font-medium`}>{rfq.customerName}</td>
               <td className={`${TD} text-ink2`}>{vesselLabel(rfq) || EMPTY}</td>
               <td className={`${TD} text-ink2`}>{EMPTY}</td>
-              <td className={`${TD} text-right`}>{EMPTY}</td>
+              <td className={`${TD} text-right`}>{rfq.lineCount}</td>
               <td className="border-b border-line2 px-3.5 py-[9px] text-right">
                 <Button variant="primary" onClick={() => onOpen(rfq)}>
                   Open RFQ

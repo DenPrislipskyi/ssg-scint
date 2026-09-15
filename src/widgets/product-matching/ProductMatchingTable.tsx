@@ -7,12 +7,14 @@ import {
   asChoice,
   asManualChoice,
   internalUomOf,
+  isSettled,
   sourceOf,
   toTableRows,
   withChoice,
   type ChosenProduct,
   type MatchTableRow,
 } from '@/entities/rfq/lib/matchRows';
+import { shownSupplier } from '@/entities/rfq/lib/sourcing';
 import type { MatchLine, RfqId } from '@/entities/rfq/model/types';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
@@ -97,7 +99,7 @@ export const ProductMatchingTable = ({ rfqId, lines }: ProductMatchingTableProps
    * порожній код усе одно не пройшов би перевірку аркушем.
    */
   const proposed = rows
-    .filter((row) => !row.confirmedItemCode && row.itemCode)
+    .filter((row) => !isSettled(row) && row.itemCode)
     .map((row) => ({ index: row.index, itemCode: row.itemCode }));
 
   /** Кандидат зі списку. Його дані вже на руках — шукати нема чого. */
@@ -244,7 +246,7 @@ const Row = ({
   onToggle: () => void;
   onConfirm: () => void;
 }) => {
-  const confirmed = row.confirmedItemCode !== '';
+  const confirmed = isSettled(row);
   return (
     <tr
       className={cn('cursor-pointer', open ? '[&>td]:bg-sel' : 'hover:[&>td]:bg-[#FAFAFA]')}
@@ -267,7 +269,11 @@ const Row = ({
       <td className={cn(TD, 'max-w-[320px]')}>{row.itemDescription || EMPTY}</td>
       <td className={cn(TD, 'whitespace-nowrap')}>{sourceOf(row.item) || EMPTY}</td>
       <td className={TD}>{internalUomOf(row.item) || EMPTY}</td>
-      <td className={cn(TD, 'max-w-[230px]')}>{EMPTY}</td>
+      {/* Постачальник — наслідок підтвердження, а не пропозиція поруч із ним:
+          доки на товарі ніхто не зупинився, постачальника ще не обрано, і
+          ім'я в цій клітинці читалося б як рішення, якого не ухвалювали.
+          У складського товару його немає й потім: постачальник там ми самі. */}
+      <td className={cn(TD, 'max-w-[230px]')}>{(confirmed && shownSupplier(row.item)) || EMPTY}</td>
       <td className={cn(TD, 'whitespace-nowrap')}>
         <Confidence value={row.confidence} />
       </td>

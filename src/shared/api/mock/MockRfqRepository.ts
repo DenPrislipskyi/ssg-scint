@@ -1,32 +1,11 @@
 import type { RfqRepository } from '@/entities/rfq/api/rfqRepository';
-import type { RfqDetail, RfqId } from '@/entities/rfq/model/types';
+import type { MatchLine, RfqDetail, RfqId } from '@/entities/rfq/model/types';
+import { descriptionOf, findInSheet } from '@/shared/api/mock/fixtures/sheet';
 import { mockDelay } from '@/shared/api/mock/mockDelay';
 
-/** Рядок аркуша, як він приходить у полі `item`. */
-const row = (
-  customerCode: string,
-  itemCode: string,
-  customerDescription: string,
-  description: string,
-  source: string,
-  uom: string,
-): Record<string, string> => ({
-  'Customer Code': customerCode,
-  'Item Code': itemCode,
-  'Customer Description': customerDescription,
-  'Item Description / SSG Description': description,
-  'Product Source': source,
-  UOM: uom,
-});
+const sheet = (itemCode: string): Record<string, string> => findInSheet(itemCode) ?? {};
 
-const BOLT = row(
-  '691284',
-  'T69128400',
-  'Hexagon Head Bolts Full Threaded (Bolt with Nut) M16*65',
-  'HEX HEAD BOLT/NUT STEEL UNGALV, M16 X 65MM',
-  'Stock',
-  'SET',
-);
+const BOLT = sheet('T69128400');
 
 /**
  * Один RFQ на фікстурах. Покриває три випадки, які малює екран: підтверджений
@@ -34,6 +13,7 @@ const BOLT = row(
  */
 const SAMPLE: RfqDetail = {
   id: 'sample',
+  reference: 'RFQ-0042',
   customerName: 'purchasing@almi.example.com',
   vesselName: 'MV ALMI GLOBE',
   imo: '9417751',
@@ -49,7 +29,7 @@ const SAMPLE: RfqDetail = {
       quantity: '500',
       uom: 'set',
       itemCode: 'T69128400',
-      itemDescription: 'HEX HEAD BOLT/NUT STEEL UNGALV, M16 X 65MM',
+      itemDescription: descriptionOf(BOLT),
       item: BOLT,
       // Підтверджений код теж має оцінку: суддя порівнював рівно ці два
       // речення, тож формула рахує з тих самих слів.
@@ -58,6 +38,7 @@ const SAMPLE: RfqDetail = {
       why: "The customer's code names this product and the descriptions agree (100%).",
       candidates: [],
       confirmedItemCode: '',
+      offerUnitPrice: null,
     },
     {
       line: 2,
@@ -75,34 +56,21 @@ const SAMPLE: RfqDetail = {
       candidates: [
         {
           itemCode: 'T69133100',
-          description: 'HEX HEAD BOLT/NUT STEEL UNGALV, M20 X 80MM',
+          description: descriptionOf(sheet('T69133100')),
           // Скільки відсотків слів запиту несе цей товар. Абсолютне число:
           // перший у списку більше не 100% просто за те, що він перший.
           confidence: 70,
-          item: row(
-            '691331',
-            'T69133100',
-            'Hexagon Head Bolts Full Threaded (Bolt with Nut) M20*80',
-            'HEX HEAD BOLT/NUT STEEL UNGALV, M20 X 80MM',
-            'JIT',
-            'SET',
-          ),
+          item: sheet('T69133100'),
         },
         {
           itemCode: 'T69114500',
-          description: 'HEX HEAD BOLT/NUT STEEL UNGALV, M8 X 50MM',
+          description: descriptionOf(sheet('T69114500')),
           confidence: 50,
-          item: row(
-            '691145',
-            'T69114500',
-            'Hexagon Head Bolts Full Threaded (Bolt with Nut) M8*50',
-            'HEX HEAD BOLT/NUT STEEL UNGALV, M8 X 50MM',
-            'GPL',
-            'SET',
-          ),
+          item: sheet('T69114500'),
         },
       ],
       confirmedItemCode: '',
+      offerUnitPrice: null,
     },
     {
       line: 3,
@@ -119,6 +87,7 @@ const SAMPLE: RfqDetail = {
       why: 'The catalogue had nothing to offer for this line.',
       candidates: [],
       confirmedItemCode: '',
+      offerUnitPrice: null,
     },
   ],
 };
@@ -126,16 +95,36 @@ const SAMPLE: RfqDetail = {
 export class MockRfqRepository implements RfqRepository {
   /** Підтвердження живуть тут, бо фікстура спільна для всіх викликів. */
   private readonly settled = new Map<number, string>();
+  /** Ціни постачальників — так само: фікстура сама по собі незмінна. */
+  private readonly quoted = new Map<number, number>();
 
   async getById(id: RfqId): Promise<RfqDetail> {
     await mockDelay(80);
+    return { ...SAMPLE, id, lines: SAMPLE.lines.map((line) => this.showing(line)) };
+  }
+
+  /**
+   * Позиція, показана як те, на чому її зупинили — так само, як це робить
+   * бекенд: запис тримає лише код, а опис, джерело, одиниця й постачальник
+   * живуть в аркуші, і читати їх треба звідти.
+   */
+  private showing(line: MatchLine): MatchLine {
+    const offerUnitPrice = this.quoted.get(line.index) ?? null;
+    const code = this.settled.get(line.index) ?? '';
+    const product = code ? findInSheet(code) : undefined;
+    if (!product) return { ...line, confirmedItemCode: code, offerUnitPrice };
+
+    // Оцінка є тільки в того, хто був у списку: товар, обраний руками, людина
+    // обрала сама, і покриття слів не було причиною.
+    const scored = line.candidates.find((one) => one.itemCode === code);
     return {
-      ...SAMPLE,
-      id,
-      lines: SAMPLE.lines.map((line) => ({
-        ...line,
-        confirmedItemCode: this.settled.get(line.index) ?? '',
-      })),
+      ...line,
+      offerUnitPrice,
+      confirmedItemCode: code,
+      itemCode: code,
+      itemDescription: descriptionOf(product),
+      item: product,
+      confidence: scored?.confidence ?? null,
     };
   }
 
@@ -153,5 +142,14 @@ export class MockRfqRepository implements RfqRepository {
     // і товар, знайдений руками, за визначенням не з них. Чи існує такий товар
     // узагалі, перевіряє бекенд проти аркуша.
     this.settled.set(index, itemCode);
+  }
+
+  async price(_id: RfqId, index: number, unitPrice: number | null): Promise<void> {
+    await mockDelay(30);
+    const line = SAMPLE.lines.find((one) => one.index === index);
+    if (!line) throw new Error(`No line ${index}`);
+
+    if (unitPrice === null) this.quoted.delete(index);
+    else this.quoted.set(index, unitPrice);
   }
 }

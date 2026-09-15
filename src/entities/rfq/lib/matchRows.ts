@@ -55,6 +55,15 @@ export const sourceOf = (item: Record<string, string>): string => column(item, '
 export const internalUomOf = (item: Record<string, string>): string => column(item, 'UOM');
 
 /**
+ * Хто постачає цей товар — колонка `Supplier` того ж рядка аркуша.
+ *
+ * Вибрати товар і вибрати постачальника — на цьому екрані одна дія: рядок
+ * аркуша несе і те, і те. Тому окремого списку постачальників немає і не має
+ * бути: він показував би вибір, якого насправді не роблять.
+ */
+export const supplierOf = (item: Record<string, string>): string => column(item, 'Supplier');
+
+/**
  * Код як ключ: тільки літери й цифри, у верхньому регістрі.
  *
  * Те саме, що робить `normalize_code` на бекенді, і з тієї ж причини:
@@ -106,6 +115,17 @@ export const toTableRows = (lines: MatchLine[]): MatchTableRow[] =>
       candidates: line.candidates,
     };
   });
+
+/**
+ * Чи ця позиція зупинена **на тому товарі, який зараз у ній стоїть**.
+ *
+ * Не «щось підтверджено»: людина, яка відкрила список і вказала на інший
+ * товар, уже бачить у рядку новий товар, і підтвердження зі старого на нього
+ * не поширюється. Тому статус, кнопка й постачальник читають саме це — інакше
+ * рядок устиг би показати новий товар зі старим постачальником поруч.
+ */
+export const isSettled = (row: MatchTableRow): boolean =>
+  row.confirmedItemCode !== '' && row.confirmedItemCode === row.itemCode;
 
 /**
  * Товар, на який оператор вказав для однієї позиції.

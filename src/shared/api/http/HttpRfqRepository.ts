@@ -17,4 +17,13 @@ export class HttpRfqRepository implements RfqRepository {
       ? httpClient<void>(path, { method: 'DELETE' })
       : httpClient<void>(path, { method: 'PUT', body: { itemCode } });
   }
+
+  price(id: RfqId, index: number, unitPrice: number | null): Promise<void> {
+    const path = `/quotes/${encodeURIComponent(id)}/rfq/lines/${index}/offer`;
+    // Та сама пара, що й у підтвердженні, і з тієї ж причини: «ніхто не
+    // називав ціни» — це не ціна, яку хтось назвав порожньою.
+    return unitPrice === null
+      ? httpClient<void>(path, { method: 'DELETE' })
+      : httpClient<void>(path, { method: 'PUT', body: { unitPrice } });
+  }
 }

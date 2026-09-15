@@ -34,6 +34,7 @@ const line = (overrides: Partial<MatchLine> = {}): MatchLine => ({
   how: 'code_confirmed',
   why: 'Same bolt.',
   candidates: [],
+  offerUnitPrice: null,
   ...overrides,
 });
 

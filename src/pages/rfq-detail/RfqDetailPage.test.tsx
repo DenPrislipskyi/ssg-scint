@@ -8,6 +8,28 @@ import { renderWithProviders } from '@/test/renderWithProviders';
 /** Поля фільтрів дебаунсяться, тож чекати доводиться довше за рендер. */
 const SLOW = { timeout: 3000 };
 
+/** Підказка на закритому другому етапі — те, що бачать при наведенні. */
+const SHUT = 'Confirm a product for every line before sourcing suppliers';
+
+/**
+ * Довести до товару всі три позиції.
+ *
+ * Дві закриває пропозиція пошуку; третій аркуш не запропонував нічого, тож
+ * товар для неї шукають руками — це єдиний шлях, який має така позиція, і
+ * без нього другий етап не відкрити.
+ */
+const settleEveryLine = async (user: ReturnType<typeof userEvent.setup>) => {
+  await user.click(screen.getByRole('button', { name: 'Accept all proposed' }));
+  await screen.findByText('2 of 3 line(s) matched');
+
+  const orphan = (await screen.findByText(/turbocharger cartridge/)).closest('tr')!;
+  await user.click(orphan);
+  await user.click(screen.getByRole('button', { name: 'Or pick manually' }));
+  await user.click(await screen.findByText('WELDER GLOVES FIVE FINGERS', undefined, SLOW));
+  await user.click(within(orphan).getByRole('button', { name: 'Confirm' }));
+  await screen.findByText('3 of 3 line(s) matched');
+};
+
 const render = () =>
   renderWithProviders(<RfqDetailPage />, {
     path: '/rfqs/:rfqId',
@@ -20,10 +42,20 @@ describe('RfqDetailPage', () => {
   it('titles the page with the RFQ reference, not the vessel', async () => {
     render();
 
-    // Референсу в даних ще немає — показуємо прочерк, а не підставляємо судно.
+    // Номер десk, а не id запису й не судно: у заголовку стоїть те, чим цей
+    // RFQ називають люди.
     const heading = await screen.findByRole('heading', { level: 1 });
-    expect(heading).toHaveTextContent('—');
+    expect(heading).toHaveTextContent('RFQ-0042');
     expect(heading).not.toHaveTextContent('ALMI');
+    expect(heading).not.toHaveTextContent('sample');
+  });
+
+  it('puts the RFQ reference in the header fields', async () => {
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    const field = screen.getByText('RFQ reference').closest('div')!;
+    expect(field).toHaveTextContent('RFQ-0042');
   });
 
   it('puts the RFQ into the header breadcrumb', async () => {
@@ -69,7 +101,9 @@ describe('RfqDetailPage', () => {
     expect(stages).toHaveLength(4);
     expect(stages[0]).toHaveAttribute('aria-current', 'step');
     expect(stages[1]).not.toHaveAttribute('aria-current');
-    expect(stages[1]).toHaveTextContent('Not in this POC');
+    // Третій і четвертий етапи ще не написані й кажуть про себе саме це.
+    expect(stages[2]).toHaveTextContent('Not in this POC');
+    expect(stages[3]).toHaveTextContent('Not in this POC');
   });
 
   it('splits the matching table into customer and internal column groups', async () => {
@@ -175,7 +209,7 @@ describe('RfqDetailPage', () => {
     // Права половина рядка тепер про обраний товар.
     expect(within(row).getByText('T69114500')).toBeInTheDocument();
     expect(within(row).getByText('50 %')).toBeInTheDocument();
-    expect(within(row).getByText('GPL')).toBeInTheDocument();
+    expect(within(row).getByText('JIT')).toBeInTheDocument();
 
     // І табличка порівняння теж - інакше вона показувала б інший товар, ніж
     // рядок над нею.
@@ -408,6 +442,146 @@ describe('RfqDetailPage', () => {
     await screen.findByText('2 of 3 line(s) matched');
 
     expect(accept).toBeDisabled();
+  });
+
+  it('names no supplier until the line is settled on a product', async () => {
+    // Постачальник — наслідок підтвердження. Ім'я поруч із непідтвердженою
+    // пропозицією читалося б як рішення, якого ніхто не ухвалював.
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    const row = (await screen.findByText('T69133100')).closest('tr')!;
+    await user.click(row);
+    await user.click(screen.getByText('HEX HEAD BOLT/NUT STEEL UNGALV, M8 X 50MM'));
+
+    expect(within(row).queryByText('Seaboard Industrial Supplies FZE')).not.toBeInTheDocument();
+  });
+
+  it('names the chosen product supplier once the line is confirmed', async () => {
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    const row = (await screen.findByText('T69133100')).closest('tr')!;
+    await user.click(row);
+    await user.click(screen.getByText('HEX HEAD BOLT/NUT STEEL UNGALV, M8 X 50MM'));
+    await user.click(within(row).getByRole('button', { name: 'Confirm' }));
+
+    await within(row).findByText('Matched');
+    // Постачальник обраного товару, а не того, що пропонував пошук.
+    const cells = within(row).getAllByRole('cell');
+    expect(cells[9]).toHaveTextContent('Seaboard Industrial Supplies FZE');
+  });
+
+  it('drops the supplier when a different product is chosen', async () => {
+    // Товар і постачальник їдуть разом: рядок не має права показати новий
+    // товар зі старим постачальником поруч.
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    const row = (await screen.findByText('T69133100')).closest('tr')!;
+    await user.click(row);
+    await user.click(within(row).getByRole('button', { name: 'Confirm' }));
+    await within(row).findByText('Matched');
+    expect(within(row).getAllByRole('cell')[9]).toHaveTextContent(
+      'Northgate Marine Fasteners Ltd.',
+    );
+
+    await user.click(screen.getByText('HEX HEAD BOLT/NUT STEEL UNGALV, M8 X 50MM'));
+
+    await within(row).findByText('Review Needed');
+    expect(within(row).getAllByRole('cell')[9]).not.toHaveTextContent('Northgate');
+    expect(within(row).getByRole('button', { name: 'Confirm' })).toBeEnabled();
+  });
+
+  it('names the supplier of a product picked by hand, once confirmed', async () => {
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    const row = (await screen.findByText('T69133100')).closest('tr')!;
+    await user.click(row);
+    await user.click(screen.getByRole('button', { name: 'Or pick manually' }));
+    await user.click(await screen.findByText('WELDER GLOVES FIVE FINGERS', undefined, SLOW));
+    await user.click(within(row).getByRole('button', { name: 'Confirm' }));
+
+    await within(row).findByText('Matched');
+    expect(within(row).getAllByRole('cell')[9]).toHaveTextContent('Harbour Safety Equipment Co.');
+  });
+
+  it('offers the whole sheet even to a line its code already settled', async () => {
+    // Один кандидат - це не «вибору немає»: постачальника цієї позиції все
+    // одно можна змінити, і шлях до цього той самий.
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    const row = (await screen.findByText('T69128400')).closest('tr')!;
+    await user.click(row);
+
+    expect(screen.getByRole('button', { name: 'Or pick manually' })).toBeInTheDocument();
+  });
+
+  it('says which supplier each candidate would settle the line on', async () => {
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    await user.click((await screen.findByText('T69133100')).closest('tr')!);
+
+    const alternative = screen
+      .getByText('HEX HEAD BOLT/NUT STEEL UNGALV, M8 X 50MM')
+      .closest('button')!;
+    expect(alternative).toHaveTextContent('Supplier · Seaboard Industrial Supplies FZE');
+  });
+
+  it('names no supplier for a product that is already on our shelf', async () => {
+    // Позиція 1 — складська. Аркуш несе для неї фірму, але беремо зі свого
+    // складу, тож у колонці постачальника нікого.
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    const row = (await screen.findByText('T69128400')).closest('tr')!;
+    await user.click(within(row).getByRole('button', { name: 'Confirm' }));
+
+    await within(row).findByText('Matched');
+    expect(within(row).getAllByRole('cell')[9]).not.toHaveTextContent('Northgate');
+  });
+
+  it('keeps Supplier Sourcing shut while a line is still unconfirmed', async () => {
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    const sourcing = screen.getAllByRole('listitem')[1]!;
+    expect(sourcing).toHaveTextContent('3 lines still to confirm');
+    expect(within(sourcing).queryByRole('link')).not.toBeInTheDocument();
+    expect(within(sourcing).getByTitle(SHUT)).toBeInTheDocument();
+  });
+
+  it('counts down the lines left to confirm', async () => {
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    await user.click(screen.getByRole('button', { name: 'Accept all proposed' }));
+    await screen.findByText('2 of 3 line(s) matched');
+
+    expect(screen.getAllByRole('listitem')[1]).toHaveTextContent('1 line still to confirm');
+  });
+
+  it('opens Supplier Sourcing once every line is settled', async () => {
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+    await settleEveryLine(user);
+
+    const sourcing = screen.getAllByRole('listitem')[1]!;
+    // Дві з трьох позицій JIT: складська на другий етап не їде.
+    expect(sourcing).toHaveTextContent('2 JIT lines to source');
+    expect(within(sourcing).getByRole('link')).toHaveAttribute('href', '/rfqs/sample/sourcing');
   });
 
   it('says so when the sheet had nothing for a line', async () => {

@@ -124,8 +124,7 @@ export const buildQuoteListItem = (quote: Quote, catalog: CatalogData): QuoteLis
     responsibleUser: quote.isTaken ? (quote.responsibleUser ?? '—') : '—',
     processingTime: quote.isTaken ? quote.processingTime : '—',
     counts,
-    completionPercent: statuses.length
-      ? Math.round((counts.priced / statuses.length) * 100)
-      : 0,
+    completionPercent: statuses.length ? Math.round((counts.priced / statuses.length) * 100) : 0,
+    lineCount: quote.lines.length,
   };
 };

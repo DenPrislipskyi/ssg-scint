@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useProducts } from '@/entities/products/hooks/useProducts';
 import type { SheetProduct } from '@/entities/products/model/types';
 import { internalUomOf, sourceOf } from '@/entities/rfq/lib/matchRows';
+import { shownSupplier } from '@/entities/rfq/lib/sourcing';
 import { useDebouncedValue } from '@/shared/lib/hooks/useDebouncedValue';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
@@ -97,6 +98,14 @@ export const ProductPicker = ({ showing, onPick }: ProductPickerProps) => {
                 .filter(Boolean)
                 .join(' · ')}
             </small>
+            {/* Вибрати рядок аркуша — це й вибрати постачальника: видно, кого
+                саме, ще до того, як позицію на ньому зупинили. Складський
+                товар мовчить — постачальник там ми самі. */}
+            {shownSupplier(product.item) && (
+              <small className="block truncate text-[11.5px] text-ink3">
+                Supplier · {shownSupplier(product.item)}
+              </small>
+            )}
           </button>
         ))}
 
