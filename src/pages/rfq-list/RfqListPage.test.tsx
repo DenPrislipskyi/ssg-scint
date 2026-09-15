@@ -1,5 +1,4 @@
 import { screen, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { RfqListPage } from '@/pages/rfq-list/RfqListPage';
@@ -37,22 +36,13 @@ describe('RfqListPage', () => {
     renderWithProviders(<RfqListPage />, { path: '/rfqs', initialEntries: ['/rfqs'] });
     await screen.findByText('Nordic Aurora Shipping');
 
-    expect(
-      screen.getAllByRole('columnheader').map((header) => header.textContent),
-    ).toEqual(['RFQ reference', 'Customer', 'Vessel', 'Customer RFQ ref', 'Lines', '']);
-  });
-
-  it('records an imported file without pretending to parse it', async () => {
-    const user = userEvent.setup();
-    renderWithProviders(<RfqListPage />, { path: '/rfqs', initialEntries: ['/rfqs'] });
-    await screen.findByText('Nordic Aurora Shipping');
-
-    const file = new File(['x'], 'E114_26.xlsx', {
-      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    });
-    await user.upload(screen.getByLabelText(/Import RFQ/), file);
-
-    expect(await screen.findByText(/E114_26\.xlsx uploaded — parsing is out of POC scope/)).toBeInTheDocument();
-    expect(screen.getByText('E114_26.xlsx')).toBeInTheDocument();
+    expect(screen.getAllByRole('columnheader').map((header) => header.textContent)).toEqual([
+      'RFQ reference',
+      'Customer',
+      'Vessel',
+      'Customer RFQ ref',
+      'Lines',
+      '',
+    ]);
   });
 });

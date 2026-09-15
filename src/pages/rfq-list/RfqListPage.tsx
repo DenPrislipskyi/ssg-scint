@@ -1,7 +1,6 @@
 import { useNavigate } from 'react-router';
 
 import { paths } from '@/app/router/paths';
-import { ImportRfqButton } from '@/features/import-rfq/ImportRfqButton';
 import { useQuotes } from '@/entities/quote/hooks/useQuotes';
 import { useQuoteStream } from '@/entities/quote/hooks/useQuoteStream';
 import { RfqTable } from '@/widgets/rfq-table/RfqTable';
@@ -23,8 +22,6 @@ export const RfqListPage = () => {
             through the four POC stages.
           </p>
         </div>
-        <span className="ml-auto" />
-        <ImportRfqButton />
       </div>
 
       <RfqTable
