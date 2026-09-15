@@ -51,8 +51,9 @@ const SAMPLE: RfqDetail = {
       itemCode: 'T69128400',
       itemDescription: 'HEX HEAD BOLT/NUT STEEL UNGALV, M16 X 65MM',
       item: BOLT,
-      // Порожньо на підтвердженому коді: доказом там є код, а не слова.
-      confidence: null,
+      // Підтверджений код теж має оцінку: суддя порівнював рівно ці два
+      // речення, тож формула рахує з тих самих слів.
+      confidence: 71,
       how: 'code_confirmed',
       why: "The customer's code names this product and the descriptions agree (100%).",
       candidates: [],

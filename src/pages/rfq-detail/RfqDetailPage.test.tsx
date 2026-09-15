@@ -92,13 +92,14 @@ describe('RfqDetailPage', () => {
     expect(within(row).getByText('70 %')).toBeInTheDocument();
   });
 
-  it('shows no percentage on a line its code confirmed', async () => {
-    // Там доказом є код, а не слова. Число було б вигаданим.
+  it('scores a line its code confirmed, like any other', async () => {
+    // Колонка не має зяяти на третині рядків: суддя порівнював ті самі два
+    // речення, які рахує формула.
     render();
     await screen.findByRole('heading', { level: 1 });
 
     const row = (await screen.findByText('T69128400')).closest('tr')!;
-    expect(within(row).queryByText(/%/)).not.toBeInTheDocument();
+    expect(within(row).getByText('71 %')).toBeInTheDocument();
   });
 
   it('gives every RFQ line one row, however many candidates it has', async () => {
