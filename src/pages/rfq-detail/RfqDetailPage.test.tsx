@@ -101,8 +101,9 @@ describe('RfqDetailPage', () => {
     expect(stages).toHaveLength(4);
     expect(stages[0]).toHaveAttribute('aria-current', 'step');
     expect(stages[1]).not.toHaveAttribute('aria-current');
-    // Третій і четвертий етапи ще не написані й кажуть про себе саме це.
-    expect(stages[2]).toHaveTextContent('Not in this POC');
+    // Третій етап уже написаний: поки позиції не підтверджені, він каже, чого
+    // бракує, — так само, як другий. Четвертого ще немає.
+    expect(stages[2]).toHaveTextContent('still to confirm');
     expect(stages[3]).toHaveTextContent('Not in this POC');
   });
 

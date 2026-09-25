@@ -17,6 +17,10 @@ export const router = createBrowserRouter([
         path: '/rfqs/:rfqId/sourcing',
         element: <RfqDetailPage stage={RFQ_STAGE.sourcing} />,
       },
+      {
+        path: '/rfqs/:rfqId/pricing',
+        element: <RfqDetailPage stage={RFQ_STAGE.pricing} />,
+      },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

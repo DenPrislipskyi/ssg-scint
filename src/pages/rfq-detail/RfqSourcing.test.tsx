@@ -29,13 +29,17 @@ const SOURCING = {
   path: '/rfqs/:rfqId/sourcing',
   element: <RfqDetailPage stage={RFQ_STAGE.sourcing} />,
 };
+const PRICING = {
+  path: '/rfqs/:rfqId/pricing',
+  element: <RfqDetailPage stage={RFQ_STAGE.pricing} />,
+};
 
 /** Другий етап, відкритий за власною адресою — так, як на нього переходять. */
 const renderSourcing = () =>
   renderWithProviders(SOURCING.element, {
     path: SOURCING.path,
     initialEntries: ['/rfqs/sample/sourcing'],
-    siblings: [MATCHING],
+    siblings: [MATCHING, PRICING],
   });
 
 /**
@@ -47,7 +51,7 @@ const settleEverything = async () => {
   renderWithProviders(MATCHING.element, {
     path: MATCHING.path,
     initialEntries: ['/rfqs/sample'],
-    siblings: [SOURCING],
+    siblings: [SOURCING, PRICING],
   });
   await screen.findByRole('heading', { level: 1 });
 
@@ -274,7 +278,7 @@ describe('Sorting Product Matching by what the agent was sure of', () => {
     renderWithProviders(MATCHING.element, {
       path: MATCHING.path,
       initialEntries: ['/rfqs/sample'],
-      siblings: [SOURCING],
+      siblings: [SOURCING, PRICING],
     });
     await screen.findByText('AI confidence');
     return user;
@@ -311,5 +315,45 @@ describe('Sorting Product Matching by what the agent was sure of', () => {
     await user.click(screen.getByRole('button', { name: /lowest first/ }));
 
     expect(header).toHaveAttribute('aria-sort', 'ascending');
+  });
+});
+
+describe('Pricing', () => {
+  /** Підпис третього етапу в шапці — те, що видно, не відкриваючи екрана. */
+  const pricingStage = () => screen.getAllByRole('listitem')[2]!;
+
+  const openPricing = async () => {
+    const user = await settleEverything();
+    await user.click(within(pricingStage()).getByRole('link'));
+    await screen.findByText('Total quote amount');
+    return user;
+  };
+
+  it('says in the stage header what it is counting with', async () => {
+    await openPricing();
+
+    expect(pricingStage()).toHaveTextContent('In-Stock 12 % · JIT 15 %');
+  });
+
+  it('keeps that header and the field showing one number, not two', async () => {
+    // Те саме число стоїть у двох місцях; дві копії розійшлися б першого ж
+    // натискання, і людина не знала б, за якою з них порахована сума.
+    const user = await openPricing();
+
+    await user.clear(screen.getByLabelText('In-Stock margin %'));
+    await user.type(screen.getByLabelText('In-Stock margin %'), '20');
+
+    expect(pricingStage()).toHaveTextContent('In-Stock 20 % · JIT 15 %');
+  });
+
+  it('leads nowhere yet, and says nothing that cannot be read', async () => {
+    await openPricing();
+    const onwards = screen.getByRole('button', { name: /Continue to RFQ Finalisation/ });
+
+    expect(onwards).toBeDisabled();
+    // Підказка тут розкривалася б за нижній край картки й читалася б
+    // обрізаною. Те саме вже сказано в четвертому етапі над таблицею.
+    expect(onwards.parentElement).not.toHaveAttribute('title');
+    expect(within(onwards.parentElement!).queryByRole('tooltip')).not.toBeInTheDocument();
   });
 });

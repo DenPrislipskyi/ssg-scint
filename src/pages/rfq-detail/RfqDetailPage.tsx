@@ -3,10 +3,12 @@ import { Navigate, useNavigate, useParams } from 'react-router';
 
 import { useBreadcrumb } from '@/app/AppLayout';
 import { paths, RFQ_STAGE } from '@/app/router/paths';
+import { useMargins } from '@/entities/rfq/hooks/useMargins';
 import { useRfq } from '@/entities/rfq/hooks/useRfq';
 import { confirmedCount, readyForSourcing, sourcingRows } from '@/entities/rfq/lib/sourcing';
 import { pluralSuffix } from '@/shared/lib/format';
 import { Button } from '@/shared/ui/Button';
+import { Pricing } from '@/widgets/pricing/Pricing';
 import { ProductMatchingTable } from '@/widgets/product-matching/ProductMatchingTable';
 import { RfqStages, type StageState } from '@/widgets/rfq-stages/RfqStages';
 import { SupplierSourcing } from '@/widgets/supplier-sourcing/SupplierSourcing';
@@ -38,6 +40,9 @@ export const RfqDetailPage = ({ stage = RFQ_STAGE.matching }: RfqDetailPageProps
   const { rfqId = '' } = useParams();
   const navigate = useNavigate();
   const rfq = useRfq(rfqId);
+  // Тут, а не в таблиці: ці самі числа стоять у підписі третього етапу, і
+  // дві копії розійшлися б першого ж натискання.
+  const [margins, setMargins] = useMargins(rfqId, rfq.lines);
   const { setBreadcrumb } = useBreadcrumb();
 
   const reference = rfq.reference;
@@ -54,12 +59,13 @@ export const RfqDetailPage = ({ stage = RFQ_STAGE.matching }: RfqDetailPageProps
   const ready = readyForSourcing(rfq.lines);
   const jit = sourcingRows(rfq.lines);
   const onSourcing = stage === RFQ_STAGE.sourcing;
+  const onPricing = stage === RFQ_STAGE.pricing;
 
   const left = total - settled;
   const stages: Partial<Record<number, StageState>> = {
     [RFQ_STAGE.matching]: {
       hint: `${settled} of ${total} line${pluralSuffix(total)} confirmed`,
-      ...(onSourcing ? { to: paths.rfq(rfqId) } : {}),
+      ...(onSourcing || onPricing ? { to: paths.rfq(rfqId) } : {}),
     },
     // Два різні етапи, а не один із прапорцем: відкритий каже, скільки роботи
     // попереду, закритий — чого бракує, щоб її почати.
@@ -72,11 +78,26 @@ export const RfqDetailPage = ({ stage = RFQ_STAGE.matching }: RfqDetailPageProps
           hint: `${left} line${pluralSuffix(left)} still to confirm`,
           blocked: BLOCKED,
         },
+    // Той самий ключ, що й у другого етапу, і це навмисно: ціну складської
+    // позиції видно, щойно вона доведена до товару, а JIT-рядок без відповіді
+    // каже про це сам. Чекати на постачальників, щоб показати те, що вже
+    // відомо, означало б ховати половину рахунку.
+    [RFQ_STAGE.pricing]: ready
+      ? {
+          // Чим рахують, а не скільки лишилося: кількість позицій уже стоїть
+          // у першому етапі, а націнку звідси видно, не відкриваючи екрана.
+          hint: `In-Stock ${margins.stock} % · JIT ${margins.jit} %`,
+          ...(onPricing ? {} : { to: paths.rfqPricing(rfqId) }),
+        }
+      : {
+          hint: `${left} line${pluralSuffix(left)} still to confirm`,
+          blocked: BLOCKED,
+        },
   };
 
   // Закритий етап мусить бути закритий і за посиланням: інакше підказка в
   // шапці — лише прохання не заходити, а адресний рядок його обходить.
-  if (onSourcing && !ready) return <Navigate to={paths.rfq(rfqId)} replace />;
+  if ((onSourcing || onPricing) && !ready) return <Navigate to={paths.rfq(rfqId)} replace />;
 
   return (
     <div className="mx-auto max-w-[1520px] px-6 pt-5 pb-10">
@@ -97,7 +118,8 @@ export const RfqDetailPage = ({ stage = RFQ_STAGE.matching }: RfqDetailPageProps
 
       <RfqStages current={stage} stages={stages} />
 
-      {onSourcing ? (
+      {onPricing && <Pricing lines={rfq.lines} margins={margins} onMargins={setMargins} />}
+      {onSourcing && (
         <SupplierSourcing
           rfqId={rfqId}
           reference={reference}
@@ -106,9 +128,8 @@ export const RfqDetailPage = ({ stage = RFQ_STAGE.matching }: RfqDetailPageProps
           rows={jit}
           inquiries={rfq.inquiries}
         />
-      ) : (
-        <ProductMatchingTable rfqId={rfqId} lines={rfq.lines} />
       )}
+      {!onSourcing && !onPricing && <ProductMatchingTable rfqId={rfqId} lines={rfq.lines} />}
     </div>
   );
 };

@@ -23,8 +23,20 @@ export const sheetRow = (
   'Item Description / SSG Description': description,
   'Product Source': source,
   UOM: uom,
+  // Обидві з джерела, бо справжній аркуш саме такий: у ньому ціна стоїть у
+  // кожного складського товару й у жодного JIT, а націнка однакова в межах
+  // джерела — 12 % складу, 15 % на привезене.
+  Price: isStock(source) ? STOCK_PRICE : '',
+  'Margin %': isStock(source) ? STOCK_MARGIN : JIT_MARGIN,
   Supplier: supplier,
 });
+
+const isStock = (source: string): boolean => source.trim().toUpperCase() !== 'JIT';
+
+/** Числа справжнього аркуша. Одні на всі рядки свого джерела, як і там. */
+const STOCK_PRICE = '25';
+const STOCK_MARGIN = '12';
+const JIT_MARGIN = '15';
 
 const NORTHGATE = 'Northgate Marine Fasteners Ltd.';
 const SEABOARD = 'Seaboard Industrial Supplies FZE';

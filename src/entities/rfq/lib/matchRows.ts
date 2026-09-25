@@ -69,6 +69,32 @@ export const internalUomOf = (item: Record<string, string>): string => column(it
 export const supplierOf = (item: Record<string, string>): string => column(item, 'Supplier');
 
 /**
+ * Скільки цей товар коштує нам — колонка `Price` аркуша.
+ *
+ * Заповнена рівно у складських товарів: їх ми вже купили, і ціна відома. У
+ * JIT вона порожня, і це не нуль — нуль означав би, що товар нам безплатний.
+ */
+export const costOf = (item: Record<string, string>): number | null =>
+  asNumber(column(item, 'Price'));
+
+/** Наша націнка на цей товар — колонка `Margin %` аркуша, у відсотках. */
+export const marginOf = (item: Record<string, string>): number | null =>
+  asNumber(column(item, 'Margin %'));
+
+/**
+ * Число з клітинки аркуша. `null` для порожньої і для всього, що числом не є.
+ *
+ * Порожня клітинка — не нуль: нуль тут був би названою ціною, а її ніхто не
+ * називав. Кома як десятковий роздільник теж рахується: аркуш ведуть люди.
+ */
+const asNumber = (value: string): number | null => {
+  const text = value.replace(/\s+/g, '').replace(',', '.');
+  if (text === '') return null;
+  const parsed = Number(text);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+/**
  * Код як ключ: тільки літери й цифри, у верхньому регістрі.
  *
  * Те саме, що робить `normalize_code` на бекенді, і з тієї ж причини:
