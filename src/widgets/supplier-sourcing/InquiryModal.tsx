@@ -1,5 +1,6 @@
 import { useState } from 'react';
 
+import type { DraftInquiry } from '@/entities/rfq/api/rfqRepository';
 import {
   inquiryText,
   lineNote,
@@ -14,13 +15,24 @@ const TH =
   'bg-[#F9FAFB] border-b border-line px-[9px] py-[7px] text-[12px] font-medium text-ink3 text-left';
 const TD = 'border-b border-line2 px-[9px] py-[7px] align-top';
 
-/** Жоден лист звідси не йде: це чернетка, яку людина потім відправить сама. */
+/** Поки не надіслали. Після надсилання вікно закривається, і напис не живе. */
 const NOT_SENT = 'Not sent';
+
+const SENDING = 'Sending…';
 
 export interface InquiryModalProps {
   groups: InquiryGroup[];
   rfq: InquiryContext;
   onClose: () => void;
+  /**
+   * Записати листи такими, якими вони на цю мить є — разом із правками.
+   *
+   * Вікно не вирішує, що станеться далі: воно знає лише, що саме пішло.
+   * Закриває його той, хто надсилає, і лише коли запис узяв.
+   */
+  onSend: (inquiries: DraftInquiry[]) => void;
+  /** Доки запис іде. Друге натискання надіслало б ту саму розсилку двічі. */
+  sending?: boolean;
 }
 
 /**
@@ -33,7 +45,13 @@ export interface InquiryModalProps {
  * Нічого не надсилає. «Send Web Inquiry» і «Cancel» роблять те саме — те, що
  * єдине тут чесно можна зробити: закривають вікно.
  */
-export const InquiryModal = ({ groups, rfq, onClose }: InquiryModalProps) => {
+export const InquiryModal = ({
+  groups,
+  rfq,
+  onClose,
+  onSend,
+  sending = false,
+}: InquiryModalProps) => {
   const [chosen, setChosen] = useState('');
   // Правки живуть, доки відкрите вікно, і окремо для кожного постачальника:
   // лист, переписаний під одного, не має наздогнати решту.
@@ -41,13 +59,29 @@ export const InquiryModal = ({ groups, rfq, onClose }: InquiryModalProps) => {
 
   const group = groups.find((one) => one.supplier === chosen) ?? groups[0];
   const lines = group?.rows ?? [];
-  const text = group ? (edited[group.supplier] ?? inquiryText(group, rfq)) : '';
+  const bodyOf = (one: InquiryGroup): string => edited[one.supplier] ?? inquiryText(one, rfq);
+  const text = group ? bodyOf(group) : '';
   const asked = groups.reduce((count, one) => count + one.rows.length, 0);
+
+  // Усі листи, не лише відкритий: натискають один раз, і решта постачальників
+  // від цього не перестає чекати на свій. Позиції адресуються номером у
+  // записі — вікно, яке перенумерує рядки, не має права переадресувати лист.
+  const send = () =>
+    onSend(
+      groups.map((one) => ({
+        supplier: one.supplier,
+        body: bodyOf(one),
+        lines: one.rows.map((row) => row.index),
+      })),
+    );
 
   return (
     <Modal
       open
       onClose={onClose}
+      // Хрестика в шапці немає, як і в макеті: закрити вже є чим — у
+      // підвалі, і два хрестики на одну дію читаються як дві різні.
+      showCloseButton={false}
       width="min(1000px,100%)"
       title="Send Web Inquiry"
       subtitle={`${groups.length} suggested supplier(s) · ${asked} JIT line(s)`}
@@ -57,11 +91,15 @@ export const InquiryModal = ({ groups, rfq, onClose }: InquiryModalProps) => {
             One predefined POC template · editable per supplier
           </span>
           <span className="ml-auto" />
-          <Button onClick={onClose}>Cancel</Button>
-          {/* Та сама дія, що й «Cancel»: у POC лист нікуди не йде, і кнопка,
-              яка вдавала б надсилання, брехала б про зроблену роботу. */}
-          <Button variant="primary" onClick={onClose}>
-            Send Web Inquiry
+          <Button onClick={onClose} disabled={sending}>
+            Cancel
+          </Button>
+          {/* Нікуди не йде і в поштовому сенсі не піде: записується те, що
+              людина склала й натиснула «надіслати». Саме це потім питають —
+              постачальнику, який назвав не той товар, відповідають листом,
+              який йому надіслали, а не шаблоном, з якого він почався. */}
+          <Button variant="primary" onClick={send} disabled={sending}>
+            {sending ? SENDING : 'Send Web Inquiry'}
           </Button>
         </>
       }

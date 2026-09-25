@@ -192,13 +192,15 @@ describe('Supplier Sourcing', () => {
     await user.click(within(screen.getAllByRole('listitem')[1]!).getByRole('link'));
     await screen.findByText('Supplier offers');
 
-    const load = screen.getByRole('button', { name: SAMPLE });
-    await user.click(load);
+    const load = () => screen.getByRole('button', { name: SAMPLE });
+    await user.click(load());
     await waitFor(() => expect(cellsOf(offerRows()[0]!)[PRICE]).not.toBe('—'));
     const quoted = offerRows().map((row) => cellsOf(row)[PRICE]);
 
-    expect(load).toBeDisabled();
-    await user.click(load);
+    // Питаємо про кнопку заново: вимкнена вона живе в обгортці, яка несе
+    // підказку, і посилання, зняте до цього, вказує вже не на неї.
+    expect(load()).toBeDisabled();
+    await user.click(load());
     expect(offerRows().map((row) => cellsOf(row)[PRICE])).toEqual(quoted);
   });
 
@@ -211,5 +213,103 @@ describe('Supplier Sourcing', () => {
       'href',
       '/rfqs/sample',
     );
+  });
+});
+
+describe('What the suppliers answered, back on Product Matching', () => {
+  /** Клітинка «Suggested supplier» того рядка, де стоїть цей товар. */
+  const supplierCellOf = (description: string) =>
+    within(screen.getByText(description).closest('tr')!).getAllByRole('cell')[9]!;
+
+  /** Довести все до товару, завантажити ціни і повернутись на перший етап. */
+  const loadAndGoBack = async () => {
+    const user = await settleEverything();
+    await user.click(within(screen.getAllByRole('listitem')[1]!).getByRole('link'));
+    await screen.findByText('Supplier offers');
+
+    await user.click(screen.getByRole('button', { name: SAMPLE }));
+    await waitFor(() => expect(cellsOf(offerRows()[0]!)[PRICE]).not.toBe('—'));
+
+    // Назад тим самим посиланням, що й людина. Нічого не перезавантажуємо:
+    // якби підпис вимагав перезавантаження, тут його не було б.
+    await user.click(within(screen.getAllByRole('listitem')[0]!).getByRole('link'));
+    await screen.findByText('AI confidence');
+  };
+
+  it('says nothing under a supplier until somebody answers', async () => {
+    await settleEverything();
+    await screen.findByText('AI confidence');
+
+    expect(screen.queryByText(/Unit Price:/)).not.toBeInTheDocument();
+    expect(screen.queryByText('stock — no inquiry')).not.toBeInTheDocument();
+  });
+
+  it('quotes the price and the quantity under a JIT supplier', async () => {
+    await loadAndGoBack();
+
+    const cell = supplierCellOf('WELDER GLOVES FIVE FINGERS');
+    expect(cell).toHaveTextContent(/Unit Price: \d+\.\d{2} USD/);
+    expect(cell).toHaveTextContent(/Available Qty: /);
+  });
+
+  it('says why a stock line has no price', async () => {
+    await loadAndGoBack();
+
+    expect(supplierCellOf('HEX HEAD BOLT/NUT STEEL UNGALV, M16 X 65MM')).toHaveTextContent(
+      'stock — no inquiry',
+    );
+  });
+});
+
+describe('Sorting Product Matching by what the agent was sure of', () => {
+  /** Оцінки, як вони зараз стоять на екрані, згори вниз. */
+  const marksOnScreen = () =>
+    screen
+      .getAllByRole('row')
+      .map((row) => within(row).queryAllByRole('cell')[10]?.textContent?.trim())
+      .filter((mark): mark is string => mark !== undefined && mark !== '');
+
+  const openMatching = async () => {
+    const user = userEvent.setup();
+    renderWithProviders(MATCHING.element, {
+      path: MATCHING.path,
+      initialEntries: ['/rfqs/sample'],
+      siblings: [SOURCING],
+    });
+    await screen.findByText('AI confidence');
+    return user;
+  };
+
+  it('opens with the surest match on top', async () => {
+    await openMatching();
+
+    const marks = marksOnScreen();
+    expect(marks.length).toBeGreaterThan(1);
+    expect(marks).toEqual([...marks].sort((a, b) => parseInt(b, 10) - parseInt(a, 10)));
+  });
+
+  it('turns around when the other arrow is pressed', async () => {
+    const user = await openMatching();
+    const down = screen.getByRole('button', { name: /lowest first/ });
+
+    await user.click(down);
+
+    const marks = marksOnScreen();
+    expect(marks).toEqual([...marks].sort((a, b) => parseInt(a, 10) - parseInt(b, 10)));
+  });
+
+  it('says which way it is sorted, rather than leaving it to be guessed', async () => {
+    const user = await openMatching();
+    const header = screen.getByText('AI confidence').closest('th')!;
+
+    expect(header).toHaveAttribute('aria-sort', 'descending');
+    expect(screen.getByRole('button', { name: /highest first/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+
+    await user.click(screen.getByRole('button', { name: /lowest first/ }));
+
+    expect(header).toHaveAttribute('aria-sort', 'ascending');
   });
 });

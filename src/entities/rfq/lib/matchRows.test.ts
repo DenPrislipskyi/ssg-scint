@@ -4,6 +4,7 @@ import {
   asChoice,
   asKey,
   asManualChoice,
+  byConfidence,
   customerCodeOf,
   sourceOf,
   toTableRows,
@@ -35,6 +36,7 @@ const line = (overrides: Partial<MatchLine> = {}): MatchLine => ({
   why: 'Same bolt.',
   candidates: [],
   offerUnitPrice: null,
+  offerReceivedAt: null,
   ...overrides,
 });
 
@@ -232,5 +234,45 @@ describe('withChoice', () => {
     const confirmed = toTableRows([line()])[0]!;
 
     expect(withChoice(confirmed, second()).itemCode).toBe('T2');
+  });
+});
+
+describe('byConfidence', () => {
+  /** Рядки таблиці з самими оцінками — більше тут нічого не вирішує. */
+  const scored = (...marks: (number | null)[]) =>
+    toTableRows(
+      marks.map((confidence, index) => line({ line: index + 1, index: index + 1, confidence })),
+    );
+
+  const marksOf = (rows: ReturnType<typeof scored>) => rows.map((row) => row.confidence);
+
+  it('puts the surest match first', () => {
+    expect(marksOf(byConfidence(scored(40, 98, 71), 'desc'))).toEqual([98, 71, 40]);
+  });
+
+  it('turns around the other way', () => {
+    expect(marksOf(byConfidence(scored(40, 98, 71), 'asc'))).toEqual([40, 71, 98]);
+  });
+
+  it('keeps an unscored line last, whichever way it is sorted', () => {
+    // `null` — товар, обраний руками. Як нуль він очолював би таблицю при
+    // «знизу вгору», на місці «агент певен найменше» — а агент не казав нічого.
+    expect(marksOf(byConfidence(scored(40, null, 98), 'desc'))).toEqual([98, 40, null]);
+    expect(marksOf(byConfidence(scored(40, null, 98), 'asc'))).toEqual([40, 98, null]);
+  });
+
+  it('leaves equal scores in the order the RFQ had them', () => {
+    const rows = byConfidence(scored(71, 71, 71), 'desc');
+
+    expect(rows.map((row) => row.line)).toEqual([1, 2, 3]);
+  });
+
+  it('does not reorder the rows it was handed', () => {
+    // Масив належить викликачу; перевпорядкувати його нишком означало б
+    // перевпорядкувати позиції RFQ.
+    const rows = scored(40, 98);
+    byConfidence(rows, 'desc');
+
+    expect(marksOf(rows)).toEqual([40, 98]);
   });
 });

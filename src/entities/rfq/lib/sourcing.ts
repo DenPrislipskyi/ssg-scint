@@ -1,4 +1,9 @@
-import { internalUomOf, sourceOf, supplierOf } from '@/entities/rfq/lib/matchRows';
+import {
+  internalUomOf,
+  sourceOf,
+  supplierOf,
+  type MatchTableRow,
+} from '@/entities/rfq/lib/matchRows';
 import type { MatchLine } from '@/entities/rfq/model/types';
 
 /**
@@ -50,6 +55,8 @@ export interface SourcingRow {
   index: number;
   /** Скільки постачальник просить за одиницю. `null` — ще не відповів. */
   unitPrice: number | null;
+  /** Коли ця ціна прийшла. `null` там само, де й ціна. */
+  receivedAt: string | null;
 }
 
 /**
@@ -74,4 +81,42 @@ export const sourcingRows = (lines: MatchLine[]): SourcingRow[] =>
       supplier: supplierOf(line.item),
       index: line.index,
       unitPrice: line.offerUnitPrice,
+      receivedAt: line.offerReceivedAt,
     }));
+
+/**
+ * Чи вже хтось відповів на цьому RFQ.
+ *
+ * Одна відповідь відмикає підписи на всіх рядках одразу: ціни приходять
+ * однією дією, і рядок, який мовчить, поки сусідній уже каже ціну, читався б
+ * як позиція, про яку забули.
+ */
+export const anyPriced = (lines: MatchLine[]): boolean =>
+  lines.some((line) => line.offerUnitPrice !== null);
+
+/** Так постачальник називає ціну: `Unit Price: 2.25 USD`. */
+const priceNote = (unitPrice: number): string => `Unit Price: ${unitPrice.toFixed(2)} USD`;
+
+/** Складській позиції ніхто не писав і не напише. */
+const NO_INQUIRY = 'stock — no inquiry';
+
+/**
+ * Підписи під назвою постачальника на екрані мапінгу.
+ *
+ * Порожньо, поки ніхто не відповів: до того сказати про постачальника нічого,
+ * крім його імені, а імені там і так досить.
+ *
+ * Складська позиція каже, чому в неї немає ціни, а не мовчить: порожня
+ * клітинка поруч із чужою ціною читається як ціна, якої ми не дочекалися.
+ *
+ * Кількість — та сама, що просили, і в тій самій одиниці, що й на другому
+ * етапі: два екрани, які називають одну кількість по-різному, — це два
+ * екрани, між якими доведеться вибирати.
+ */
+export const supplierNotes = (row: MatchTableRow): string[] => {
+  if (!needsSourcing(row.item)) return [NO_INQUIRY];
+  if (row.offerUnitPrice === null) return [];
+
+  const quantity = [row.quantity, row.uom || internalUomOf(row.item)].filter(Boolean).join(' ');
+  return [priceNote(row.offerUnitPrice), ...(quantity ? [`Available Qty: ${quantity}`] : [])];
+};

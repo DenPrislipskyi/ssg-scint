@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { inquiryGroups, inquiryText, lineNote } from '@/entities/rfq/lib/inquiry';
+import { inquiryGroups, inquiryText, lineNote, replyText } from '@/entities/rfq/lib/inquiry';
 import type { SourcingRow } from '@/entities/rfq/lib/sourcing';
 
 const SAFETY = 'Safety Innovators (Intl) Pte Ltd';
@@ -16,6 +16,7 @@ const row = (line: number, supplier: string, over: Partial<SourcingRow> = {}): S
   uom: 'prs',
   supplier,
   unitPrice: null,
+  receivedAt: null,
   ...over,
 });
 
@@ -96,5 +97,24 @@ describe('inquiryText', () => {
     expect(inquiryText(group!, { ...RFQ, port: '' })).toContain(
       'Kindly quote the following item(s) for MV LIA.',
     );
+  });
+});
+
+describe('replyText', () => {
+  it('is written in the supplier’s name and about this RFQ', () => {
+    const text = replyText(SAFETY, 'RFQ-0114');
+
+    expect(text).toContain('Thank you for your inquiry regarding RFQ-0114.');
+    expect(text.endsWith(`Best regards,\n${SAFETY}`)).toBe(true);
+  });
+
+  it('promises no attachment, because none comes with it', () => {
+    expect(replyText(SAFETY, 'RFQ-0114')).not.toContain('attached');
+  });
+
+  it('says nothing about a number the RFQ never got', () => {
+    // Запис, зроблений до того, як номери з'явилися. Крапка одразу після
+    // «inquiry» читалася б як загублене слово.
+    expect(replyText(SAFETY, '')).toContain('Thank you for your inquiry. Our offer follows');
   });
 });

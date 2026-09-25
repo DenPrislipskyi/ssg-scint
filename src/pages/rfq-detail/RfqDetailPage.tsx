@@ -104,6 +104,7 @@ export const RfqDetailPage = ({ stage = RFQ_STAGE.matching }: RfqDetailPageProps
           vessel={rfq.vesselName}
           port={rfq.port}
           rows={jit}
+          inquiries={rfq.inquiries}
         />
       ) : (
         <ProductMatchingTable rfqId={rfqId} lines={rfq.lines} />

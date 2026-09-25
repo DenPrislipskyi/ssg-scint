@@ -1,5 +1,5 @@
 import { httpClient } from '@/shared/api/httpClient';
-import type { RfqRepository } from '@/entities/rfq/api/rfqRepository';
+import type { DraftInquiry, RfqRepository } from '@/entities/rfq/api/rfqRepository';
 import type { RfqDetail, RfqId } from '@/entities/rfq/model/types';
 
 /** Один RFQ з бекенда агента. */
@@ -25,5 +25,15 @@ export class HttpRfqRepository implements RfqRepository {
     return unitPrice === null
       ? httpClient<void>(path, { method: 'DELETE' })
       : httpClient<void>(path, { method: 'PUT', body: { unitPrice } });
+  }
+
+  sendInquiries(id: RfqId, inquiries: DraftInquiry[]): Promise<void> {
+    // Один PUT на всю розсилку, а не по одному на постачальника: обрив
+    // посеред циклу лишив би в записі половину листів — опис розсилки, якої
+    // не було.
+    return httpClient<void>(`/quotes/${encodeURIComponent(id)}/rfq/inquiries`, {
+      method: 'PUT',
+      body: { inquiries },
+    });
   }
 }

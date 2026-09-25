@@ -1,13 +1,16 @@
 import { useState } from 'react';
 
 import { useRecordOffers } from '@/entities/rfq/hooks/useRecordOffers';
+import { useSendInquiries } from '@/entities/rfq/hooks/useSendInquiries';
 import { inquiryGroups } from '@/entities/rfq/lib/inquiry';
+import { alreadySent, hasAnyReply, supplierThreads } from '@/entities/rfq/lib/responses';
 import type { SourcingRow } from '@/entities/rfq/lib/sourcing';
-import type { RfqId } from '@/entities/rfq/model/types';
+import type { RfqId, SentInquiry } from '@/entities/rfq/model/types';
 import { pluralSuffix } from '@/shared/lib/format';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
 import { InquiryModal } from '@/widgets/supplier-sourcing/InquiryModal';
+import { ResponsesModal } from '@/widgets/supplier-sourcing/ResponsesModal';
 
 /** Порожнє значення показуємо прочерком, а не ховаємо і не вигадуємо. */
 const EMPTY = <span className="text-ink4">—</span>;
@@ -20,6 +23,15 @@ const MONO = 'font-mono text-[12.5px]';
 
 /** Писати нема кому: жодна позиція не назвала постачальника. */
 const NOBODY_TO_ASK = 'No supplier to write to';
+
+/**
+ * Чому кнопки заблоковані. Кожна фраза називає те, чого бракує, а не те, що
+ * заборонено: людина, яка її читає, шукає, що зробити далі.
+ */
+const ALREADY_ASKED = 'The web inquiries for this RFQ have already been sent';
+const NOTHING_CAME_BACK =
+  'Load a sample supplier response first — there are no replies to read yet';
+const NOBODY_ANSWERED = 'No supplier thread on this RFQ';
 
 /**
  * Межі вигаданої ціни. Це імітація відповіді постачальника, а не оцінка:
@@ -52,6 +64,12 @@ export interface SupplierSourcingProps {
   vessel: string;
   port: string;
   rows: SourcingRow[];
+  /**
+   * Листи, які вже пішли. Порожньо, поки ніхто не надсилав — і саме це, а не
+   * прапорець на клієнті, гасить кнопку: запис переживає перезавантаження,
+   * а прапорець ні.
+   */
+  inquiries: SentInquiry[];
 }
 
 /**
@@ -68,11 +86,28 @@ export const SupplierSourcing = ({
   vessel,
   port,
   rows,
+  inquiries,
 }: SupplierSourcingProps) => {
   const [inquiring, setInquiring] = useState(false);
+  const [reading, setReading] = useState(false);
+  const sending = useSendInquiries(rfqId);
   // Один лист на постачальника, а не на позицію: двічі писати тому самому про
   // ту саму поставку — це той випадок, заради якого групування тут і є.
   const groups = inquiryGroups(rows);
+  const rfq = { reference, vessel, port };
+  const threads = supplierThreads(rows, inquiries, rfq);
+
+  // Надсилають один раз. Друга розсилка переписала б текст, який постачальник
+  // цієї миті читає, тож кнопка гасне — і гасне вона від запису, а не від
+  // того, що хтось уже натискав у цій вкладці.
+  const sent = alreadySent(inquiries);
+  const cannotAsk = groups.length === 0 ? NOBODY_TO_ASK : sent ? ALREADY_ASKED : undefined;
+
+  // Читати нема чого, поки ніхто не назвав ціни: вікно показало б наш лист і
+  // порожнє місце під ним, а питання, заради якого його відкривають, — саме
+  // про те, що відповіли.
+  const cannotRead =
+    threads.length === 0 ? NOBODY_ANSWERED : hasAnyReply(rows) ? undefined : NOTHING_CAME_BACK;
 
   return (
     <div className="overflow-hidden rounded-xl border border-line bg-white">
@@ -86,11 +121,19 @@ export const SupplierSourcing = ({
         <Button
           variant="primary"
           className="px-3"
-          disabled={groups.length === 0}
-          {...(groups.length === 0 ? { title: NOBODY_TO_ASK } : {})}
+          disabled={cannotAsk !== undefined}
+          {...(cannotAsk ? { title: cannotAsk } : {})}
           onClick={() => setInquiring(true)}
         >
           Send Web Inquiry
+        </Button>
+        <Button
+          className="px-3"
+          disabled={cannotRead !== undefined}
+          {...(cannotRead ? { title: cannotRead } : {})}
+          onClick={() => setReading(true)}
+        >
+          Supplier Responses
         </Button>
       </div>
 
@@ -155,9 +198,17 @@ export const SupplierSourcing = ({
       {inquiring && (
         <InquiryModal
           groups={groups}
-          rfq={{ reference, vessel, port }}
+          rfq={rfq}
+          sending={sending.isPending}
+          onSend={(drafts) => sending.mutate(drafts, { onSuccess: () => setInquiring(false) })}
           onClose={() => setInquiring(false)}
         />
+      )}
+
+      {/* Так само монтується лише відкритим: обраний постачальник — це стан
+          одного читання, і наступного разу воно має починатися зверху. */}
+      {reading && (
+        <ResponsesModal threads={threads} reference={reference} onClose={() => setReading(false)} />
       )}
     </div>
   );

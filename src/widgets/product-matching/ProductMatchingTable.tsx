@@ -6,6 +6,7 @@ import type { SheetProduct } from '@/entities/products/model/types';
 import {
   asChoice,
   asManualChoice,
+  byConfidence,
   internalUomOf,
   isSettled,
   sourceOf,
@@ -13,16 +14,92 @@ import {
   withChoice,
   type ChosenProduct,
   type MatchTableRow,
+  type SortDirection,
 } from '@/entities/rfq/lib/matchRows';
-import { shownSupplier } from '@/entities/rfq/lib/sourcing';
+import {
+  anyPriced,
+  needsSourcing,
+  shownSupplier,
+  supplierNotes,
+} from '@/entities/rfq/lib/sourcing';
 import type { MatchLine, RfqId } from '@/entities/rfq/model/types';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
+import { IconSortDown, IconSortUp } from '@/shared/ui/icons';
 import { Confidence } from '@/widgets/product-matching/Confidence';
 import { MatchDetail } from '@/widgets/product-matching/MatchDetail';
 
 /** Порожнє значення показуємо прочерком, а не ховаємо і не вигадуємо. */
 const EMPTY = <span className="text-ink4">—</span>;
+
+/**
+ * Дві стрілки над оцінкою: згори найвпевненіші, або знизу.
+ *
+ * Дві кнопки, а не одна-перемикач: перемикач треба спершу натиснути, щоб
+ * дізнатися, що він зробить, а тут напрямок видно до натискання. Активна
+ * стрілка темна — інакше таблиця не каже, як саме вона зараз відсортована.
+ */
+const SortArrows = ({
+  sort,
+  onSort,
+}: {
+  sort: SortDirection;
+  onSort: (direction: SortDirection) => void;
+}) => (
+  <span className="ml-1.5 inline-flex flex-col align-middle">
+    <Arrow on={sort === 'desc'} onClick={() => onSort('desc')} label="highest first">
+      <IconSortUp className="size-2.5" />
+    </Arrow>
+    <Arrow on={sort === 'asc'} onClick={() => onSort('asc')} label="lowest first">
+      <IconSortDown className="size-2.5" />
+    </Arrow>
+  </span>
+);
+
+const Arrow = ({
+  on,
+  onClick,
+  label,
+  children,
+}: {
+  on: boolean;
+  onClick: () => void;
+  label: string;
+  children: React.ReactNode;
+}) => (
+  <button
+    type="button"
+    aria-label={`Sort by AI confidence, ${label}`}
+    aria-pressed={on}
+    onClick={onClick}
+    className={cn(
+      'flex cursor-pointer leading-none transition-colors',
+      on ? 'text-ink' : 'text-ink4 hover:text-ink3',
+    )}
+  >
+    {children}
+  </button>
+);
+
+/**
+ * Джерело товару, плашкою — як у макеті. Тільки вигляд: що вважати JIT, а що
+ * складом, вирішує `needsSourcing`, і ця плашка лише переказує його відповідь.
+ */
+const SourceBadge = ({ item }: { item: Record<string, string> }) => {
+  const source = sourceOf(item);
+  if (!source) return EMPTY;
+
+  return (
+    <span
+      className={cn(
+        'inline-block rounded-md px-2 py-0.5 text-[12px] font-medium',
+        needsSourcing(item) ? 'bg-sup-soft text-sup' : 'bg-ok-soft text-ok',
+      )}
+    >
+      {source}
+    </span>
+  );
+};
 
 /** Шапка групи колонок: «дані клієнта» проти «наш товар». */
 const GROUP_TH =
@@ -77,12 +154,21 @@ export const ProductMatchingTable = ({ rfqId, lines }: ProductMatchingTableProps
   // що запропонував пошук», а не «нічого»: рядок без вибору показує першого
   // кандидата, бо позиція без товару праворуч — це позиція, яку нічим читати.
   const [chosen, setChosen] = useState<Record<string, ChosenProduct>>({});
+  // Найвпевненіші згори, поки не сказали інакше. Не зберігається між
+  // відкриттями: це спосіб подивитися на таблицю, а не властивість RFQ.
+  const [sort, setSort] = useState<SortDirection>('desc');
 
   // Що показувати праворуч: вибір оператора, а без нього — підтверджене, а
   // без нього — те, що запропонував пошук.
   // Праворуч стоїть вибір оператора, а без нього — те, що прийшло з бекенда:
   // підтверджений товар або пропозиція пошуку.
-  const rows = toTableRows(lines).map((row) => withChoice(row, chosen[row.key]));
+  const rows = byConfidence(
+    toTableRows(lines).map((row) => withChoice(row, chosen[row.key])),
+    sort,
+  );
+  // Питаємо про весь RFQ, а не про рядок: ціни приходять однією дією, і
+  // складській позиції теж є що сказати — саме те, чому ціни в неї немає.
+  const priced = anyPriced(lines);
 
   /** Інший товар знімає підтвердження: не можна лишити «Matched» на тому, чого
    *  на екрані вже немає. Той самий — не чіпаємо, бо нічого не змінилося. */
@@ -148,10 +234,14 @@ export const ProductMatchingTable = ({ rfqId, lines }: ProductMatchingTableProps
               <th scope="col" className={cn(TH, TH_SEP, 'whitespace-nowrap')}>
                 Line #
               </th>
-              <th scope="col" className={cn(TH, TH_SEP, 'whitespace-nowrap')}>
+              {/* Ширину цієї колонки тримав лише заголовок: коди в ній
+                  удвічі коротші за нього. Хай переноситься. */}
+              <th scope="col" className={cn(TH, TH_SEP)}>
                 Customer item code
               </th>
-              <th scope="col" className={cn(TH, TH_SEP)}>
+              {/* Описи — єдині колонки, що тягнуться. Без нижньої межі вони
+                  віддають усе місце сусідам і стискаються в стовпчик слів. */}
+              <th scope="col" className={cn(TH, TH_SEP, 'min-w-[150px]')}>
                 Customer description
               </th>
               <th scope="col" className={cn(TH, TH_SEP, '!text-right')}>
@@ -160,10 +250,10 @@ export const ProductMatchingTable = ({ rfqId, lines }: ProductMatchingTableProps
               <th scope="col" className={cn(TH, TH_GROUP_END)}>
                 UOM
               </th>
-              <th scope="col" className={cn(TH, TH_SEP, 'whitespace-nowrap')}>
+              <th scope="col" className={cn(TH, TH_SEP)}>
                 Internal item code
               </th>
-              <th scope="col" className={cn(TH, TH_SEP)}>
+              <th scope="col" className={cn(TH, TH_SEP, 'min-w-[170px]')}>
                 Internal item description
               </th>
               <th scope="col" className={cn(TH, TH_SEP)}>
@@ -172,13 +262,18 @@ export const ProductMatchingTable = ({ rfqId, lines }: ProductMatchingTableProps
               <th scope="col" className={cn(TH, TH_SEP)}>
                 Internal UOM
               </th>
-              <th scope="col" className={cn(TH, TH_SEP)}>
+              <th scope="col" className={cn(TH, TH_SEP, 'min-w-[250px]')}>
                 Suggested supplier
               </th>
-              <th scope="col" className={cn(TH, TH_SEP)}>
+              <th
+                scope="col"
+                aria-sort={sort === 'desc' ? 'descending' : 'ascending'}
+                className={cn(TH, TH_SEP, 'whitespace-nowrap')}
+              >
                 AI confidence
+                <SortArrows sort={sort} onSort={setSort} />
               </th>
-              <th scope="col" className={cn(TH, TH_SEP)}>
+              <th scope="col" className={cn(TH, TH_SEP, 'w-[110px]')}>
                 Match status
               </th>
               <th scope="col" className={TH}>
@@ -201,6 +296,7 @@ export const ProductMatchingTable = ({ rfqId, lines }: ProductMatchingTableProps
                 <Row
                   row={row}
                   open={openKey === row.key}
+                  priced={priced}
                   onToggle={() => setOpenKey(openKey === row.key ? null : row.key)}
                   onConfirm={() => confirm.mutate({ index: row.index, itemCode: row.itemCode })}
                 />
@@ -238,11 +334,17 @@ export const ProductMatchingTable = ({ rfqId, lines }: ProductMatchingTableProps
 const Row = ({
   row,
   open,
+  priced,
   onToggle,
   onConfirm,
 }: {
   row: MatchTableRow;
   open: boolean;
+  /**
+   * Чи вже надійшли ціни. Про весь RFQ, а не про цей рядок: відповідь
+   * приходить однією дією, і складська позиція теж має що про неї сказати.
+   */
+  priced: boolean;
   onToggle: () => void;
   onConfirm: () => void;
 }) => {
@@ -267,17 +369,34 @@ const Row = ({
       <td className={TD_GROUP_END}>{row.uom || EMPTY}</td>
       <td className={cn(TD, MONO)}>{row.itemCode || EMPTY}</td>
       <td className={cn(TD, 'max-w-[320px]')}>{row.itemDescription || EMPTY}</td>
-      <td className={cn(TD, 'whitespace-nowrap')}>{sourceOf(row.item) || EMPTY}</td>
+      <td className={cn(TD, 'whitespace-nowrap')}>
+        <SourceBadge item={row.item} />
+      </td>
       <td className={TD}>{internalUomOf(row.item) || EMPTY}</td>
       {/* Постачальник — наслідок підтвердження, а не пропозиція поруч із ним:
           доки на товарі ніхто не зупинився, постачальника ще не обрано, і
           ім'я в цій клітинці читалося б як рішення, якого не ухвалювали.
-          У складського товару його немає й потім: постачальник там ми самі. */}
-      <td className={cn(TD, 'max-w-[230px]')}>{(confirmed && shownSupplier(row.item)) || EMPTY}</td>
+          У складського товару його немає й потім: постачальник там ми самі.
+
+          Підписи під ним з'являються, коли надійшли ціни, і за тим самим
+          правилом: сказати про постачальника непідтвердженої позиції нічого
+          не можна — невідомо навіть, чи вона складська. */}
+      <td className={cn(TD, 'max-w-[280px] min-w-[250px]')}>
+        {(confirmed && shownSupplier(row.item)) || EMPTY}
+        {confirmed &&
+          priced &&
+          supplierNotes(row).map((note) => (
+            <small key={note} className="mt-0.5 block text-[11.5px] text-ink2">
+              {note}
+            </small>
+          ))}
+      </td>
       <td className={cn(TD, 'whitespace-nowrap')}>
         <Confidence value={row.confidence} />
       </td>
-      <td className={cn(TD, 'whitespace-nowrap')} title={row.why}>
+      {/* Переноситься, а не тягне колонку вшир: підпис під статусом буває
+          довгим, і в один рядок він з'їдав би місце в сусідів. */}
+      <td className={cn(TD, 'w-[110px]')} title={row.why}>
         <b className={cn('font-medium', confirmed ? 'text-ok' : 'text-warn')}>
           {confirmed ? 'Matched' : 'Review Needed'}
         </b>

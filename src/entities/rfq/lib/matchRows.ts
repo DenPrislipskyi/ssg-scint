@@ -28,6 +28,11 @@ export interface MatchTableRow {
   candidates: MatchCandidate[];
   /** Товар, на якому зупинилася людина. Порожньо — «Review Needed». */
   confirmedItemCode: string;
+  /**
+   * Скільки постачальник просить за одиницю. `null`, поки не відповів — і це
+   * те, що вирішує, чи є під постачальником що дописувати.
+   */
+  offerUnitPrice: number | null;
 }
 
 /**
@@ -98,6 +103,7 @@ export const toTableRows = (lines: MatchLine[]): MatchTableRow[] =>
       line: line.line,
       index: line.index,
       confirmedItemCode: line.confirmedItemCode,
+      offerUnitPrice: line.offerUnitPrice,
       // Номер позиції — не ключ: бекенд бере його з файла клієнта, і два
       // файли в одному RFQ приносять свої нумерації, які можуть збігтися.
       key: `${index}:${line.line}`,
@@ -180,3 +186,28 @@ export const withChoice = (row: MatchTableRow, chosen: ChosenProduct | undefined
         item: chosen.item,
         confidence: chosen.confidence,
       };
+
+/** Куди сортування кладе найвпевненіші збіги. */
+export type SortDirection = 'desc' | 'asc';
+
+/**
+ * Рядки за оцінкою агента.
+ *
+ * Позиція без оцінки завжди в кінці, хай там який напрямок. `null` тут — це
+ * товар, обраний руками: оцінки в нього немає й бути не може, бо покриття слів
+ * не було причиною вибору. Якби вона сортувалася як нуль, то очолювала б
+ * таблицю при «знизу вгору» — на місці, яке означає «агент певен найменше», а
+ * про цей рядок агент не казав нічого.
+ *
+ * Копія, а не сортування на місці: вхідний масив належить викликачу, і
+ * перевпорядкувати його нишком означало б перевпорядкувати позиції RFQ.
+ */
+export const byConfidence = (rows: MatchTableRow[], direction: SortDirection): MatchTableRow[] =>
+  [...rows].sort((one, other) => {
+    if (one.confidence === null || other.confidence === null) {
+      return Number(one.confidence === null) - Number(other.confidence === null);
+    }
+    return direction === 'desc'
+      ? other.confidence - one.confidence
+      : one.confidence - other.confidence;
+  });

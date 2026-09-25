@@ -1,5 +1,5 @@
-import type { RfqRepository } from '@/entities/rfq/api/rfqRepository';
-import type { MatchLine, RfqDetail, RfqId } from '@/entities/rfq/model/types';
+import type { DraftInquiry, RfqRepository } from '@/entities/rfq/api/rfqRepository';
+import type { MatchLine, RfqDetail, RfqId, SentInquiry } from '@/entities/rfq/model/types';
 import { descriptionOf, findInSheet } from '@/shared/api/mock/fixtures/sheet';
 import { mockDelay } from '@/shared/api/mock/mockDelay';
 
@@ -39,6 +39,7 @@ const SAMPLE: RfqDetail = {
       candidates: [],
       confirmedItemCode: '',
       offerUnitPrice: null,
+      offerReceivedAt: null,
     },
     {
       line: 2,
@@ -71,6 +72,7 @@ const SAMPLE: RfqDetail = {
       ],
       confirmedItemCode: '',
       offerUnitPrice: null,
+      offerReceivedAt: null,
     },
     {
       line: 3,
@@ -88,8 +90,11 @@ const SAMPLE: RfqDetail = {
       candidates: [],
       confirmedItemCode: '',
       offerUnitPrice: null,
+      offerReceivedAt: null,
     },
   ],
+  // Нікого ще не питали: фікстура — це RFQ, щойно доведений до другого етапу.
+  inquiries: [],
 };
 
 export class MockRfqRepository implements RfqRepository {
@@ -97,10 +102,19 @@ export class MockRfqRepository implements RfqRepository {
   private readonly settled = new Map<number, string>();
   /** Ціни постачальників — так само: фікстура сама по собі незмінна. */
   private readonly quoted = new Map<number, number>();
+  /** Коли кожна з них прийшла. Бекенд ставить цей час сам, тож і тут. */
+  private readonly received = new Map<number, string>();
+  /** Листи, що пішли. Порожньо, поки ніхто не натискав Send Web Inquiry. */
+  private sent: SentInquiry[] = [];
 
   async getById(id: RfqId): Promise<RfqDetail> {
     await mockDelay(80);
-    return { ...SAMPLE, id, lines: SAMPLE.lines.map((line) => this.showing(line)) };
+    return {
+      ...SAMPLE,
+      id,
+      lines: SAMPLE.lines.map((line) => this.showing(line)),
+      inquiries: [...this.sent],
+    };
   }
 
   /**
@@ -110,9 +124,10 @@ export class MockRfqRepository implements RfqRepository {
    */
   private showing(line: MatchLine): MatchLine {
     const offerUnitPrice = this.quoted.get(line.index) ?? null;
+    const offerReceivedAt = this.received.get(line.index) ?? null;
     const code = this.settled.get(line.index) ?? '';
     const product = code ? findInSheet(code) : undefined;
-    if (!product) return { ...line, confirmedItemCode: code, offerUnitPrice };
+    if (!product) return { ...line, confirmedItemCode: code, offerUnitPrice, offerReceivedAt };
 
     // Оцінка є тільки в того, хто був у списку: товар, обраний руками, людина
     // обрала сама, і покриття слів не було причиною.
@@ -120,6 +135,7 @@ export class MockRfqRepository implements RfqRepository {
     return {
       ...line,
       offerUnitPrice,
+      offerReceivedAt,
       confirmedItemCode: code,
       itemCode: code,
       itemDescription: descriptionOf(product),
@@ -149,7 +165,24 @@ export class MockRfqRepository implements RfqRepository {
     const line = SAMPLE.lines.find((one) => one.index === index);
     if (!line) throw new Error(`No line ${index}`);
 
-    if (unitPrice === null) this.quoted.delete(index);
-    else this.quoted.set(index, unitPrice);
+    // Ціна й мить, коли вона прийшла, — один факт: рядок без ціни, але з
+    // датою читався б як відповідь, яку ми загубили.
+    if (unitPrice === null) {
+      this.quoted.delete(index);
+      this.received.delete(index);
+      return;
+    }
+    this.quoted.set(index, unitPrice);
+    this.received.set(index, new Date().toISOString());
+  }
+
+  async sendInquiries(_id: RfqId, inquiries: DraftInquiry[]): Promise<void> {
+    await mockDelay(30);
+    // Один раз, як і на бекенді: повторне надсилання переписало б текст, який
+    // постачальник цієї миті читає.
+    if (this.sent.length > 0) throw new Error('These inquiries have already gone');
+
+    const sentAt = new Date().toISOString();
+    this.sent = inquiries.map((one) => ({ ...one, lines: [...one.lines], sentAt }));
   }
 }

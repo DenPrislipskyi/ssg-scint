@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
+import { toTableRows } from '@/entities/rfq/lib/matchRows';
 import {
+  anyPriced,
   confirmedCount,
   needsSourcing,
   readyForSourcing,
   shownSupplier,
   sourcingRows,
+  supplierNotes,
 } from '@/entities/rfq/lib/sourcing';
 import type { MatchLine } from '@/entities/rfq/model/types';
 
@@ -33,6 +36,7 @@ const line = (overrides: Partial<MatchLine> = {}): MatchLine => ({
   candidates: [],
   confirmedItemCode: 'T69133100',
   offerUnitPrice: null,
+  offerReceivedAt: null,
   ...overrides,
 });
 
@@ -95,5 +99,54 @@ describe('sourcingRows', () => {
   it('falls back to our own unit when the customer named none', () => {
     const rows = sourcingRows([line({ uom: '' })]);
     expect(rows[0]?.uom).toBe('SET');
+  });
+});
+
+/** Рядок таблиці мапінгу, зібраний так само, як його збирає екран. */
+const tableRow = (overrides: Partial<MatchLine> = {}) => toTableRows([line(overrides)])[0]!;
+
+describe('anyPriced', () => {
+  it('is false while nobody has answered', () => {
+    expect(anyPriced([line(), line({ index: 2 })])).toBe(false);
+  });
+
+  it('is true from the first price, so every row speaks at once', () => {
+    expect(anyPriced([line(), line({ index: 2, offerUnitPrice: 2.25 })])).toBe(true);
+  });
+});
+
+describe('supplierNotes', () => {
+  it('says nothing under a JIT line nobody has priced', () => {
+    expect(supplierNotes(tableRow())).toEqual([]);
+  });
+
+  it('quotes the price the way a supplier names it', () => {
+    expect(supplierNotes(tableRow({ offerUnitPrice: 2.25 }))).toEqual([
+      'Unit Price: 2.25 USD',
+      'Available Qty: 12 pcs',
+    ]);
+  });
+
+  it('keeps two decimals, because that is what money looks like', () => {
+    // Ціни-заглушки мають один знак; 42.8 USD читалося б як обрізане число.
+    expect(supplierNotes(tableRow({ offerUnitPrice: 42.8 }))[0]).toBe('Unit Price: 42.80 USD');
+  });
+
+  it('falls back to our unit when the customer named none', () => {
+    const notes = supplierNotes(tableRow({ offerUnitPrice: 2.25, uom: '' }));
+
+    expect(notes[1]).toBe('Available Qty: 12 SET');
+  });
+
+  it('says why a stock line has no price rather than going quiet', () => {
+    // Порожня клітинка поруч із чужою ціною читається як ціна, якої ми не
+    // дочекалися, — а тут її ніхто й не чекав.
+    expect(supplierNotes(tableRow({ item: item('Stock') }))).toEqual(['stock — no inquiry']);
+  });
+
+  it('says the same of a stock line even when one is somehow priced', () => {
+    expect(supplierNotes(tableRow({ item: item('Stock'), offerUnitPrice: 2.25 }))).toEqual([
+      'stock — no inquiry',
+    ]);
   });
 });

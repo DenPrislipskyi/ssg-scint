@@ -33,7 +33,14 @@ export const IconOk = (props: IconProps) => (
 export const IconOkFilled = (props: IconProps) => (
   <svg {...base(props)} fill="currentColor">
     <circle cx="8" cy="8" r="7" />
-    <path d="M5 8l2 2 4-4" fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+    <path
+      d="M5 8l2 2 4-4"
+      fill="none"
+      stroke="#fff"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
   </svg>
 );
 
@@ -107,5 +114,22 @@ export const IconHighPriority = (props: IconProps) => (
 export const IconClose = (props: IconProps) => (
   <svg {...base(props)} {...stroke}>
     <path d="M4 4l8 8M12 4l-8 8" />
+  </svg>
+);
+
+/**
+ * Стрілки сортування. Заливкою, а не обведенням, як решта: на десяти пікселях
+ * контур злипається в пляму, і напрямок стрілки перестає читатися — а він тут
+ * і є всім її змістом.
+ */
+export const IconSortUp = (props: IconProps) => (
+  <svg {...base(props)} fill="currentColor">
+    <path d="M8 4l5 7H3z" />
+  </svg>
+);
+
+export const IconSortDown = (props: IconProps) => (
+  <svg {...base(props)} fill="currentColor">
+    <path d="M8 12L3 5h10z" />
   </svg>
 );
