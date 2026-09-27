@@ -49,8 +49,8 @@ const overruled = (overrides: Partial<MatchLine> = {}): MatchLine =>
     confidence: null,
     how: 'code_rejected',
     candidates: [
-      { itemCode: 'T1', description: 'first', confidence: 100, item: SHEET },
-      { itemCode: 'T2', description: 'second', confidence: 20, item: {} },
+      { itemCode: 'T1', description: 'first', confidence: 100, why: '', item: SHEET },
+      { itemCode: 'T2', description: 'second', confidence: 20, why: '', item: {} },
     ],
     ...overrides,
   });
@@ -87,7 +87,9 @@ describe('toTableRows', () => {
     // Підтверджене вже вирішено; пропозиція поруч із ним сперечалася б із тим,
     // що вирішено, і читалася б як другий варіант там, де його немає.
     const rows = toTableRows([
-      line({ candidates: [{ itemCode: 'T9', description: 'other', confidence: 40, item: {} }] }),
+      line({
+        candidates: [{ itemCode: 'T9', description: 'other', confidence: 40, why: '', item: {} }],
+      }),
     ]);
 
     expect(rows[0]?.itemCode).toBe('T69128400');
@@ -100,7 +102,9 @@ describe('toTableRows', () => {
     const rows = toTableRows([
       overruled({
         customerCode: '650823',
-        candidates: [{ itemCode: 'T1', description: 'first', confidence: 100, item: SHEET }],
+        candidates: [
+          { itemCode: 'T1', description: 'first', confidence: 100, why: '', item: SHEET },
+        ],
       }),
     ]);
 

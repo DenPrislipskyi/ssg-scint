@@ -15,11 +15,16 @@ export interface MatchCandidate {
   itemCode: string;
   description: string;
   /**
-   * 0–100, скор пошуку як відсоток від найкращого кандидата ТІЄЇ Ж лінії.
-   * Не ймовірність і не порівнюється між лініями: показуємо людині, але
-   * нічого на ньому не вирішуємо.
+   * 0-100, how sure matching is that this is what the line asked for. `null`
+   * where the line could not be scored - shown as a dash, never as a number
+   * nobody worked out. Shown to a person; nothing on the page decides on it.
    */
-  confidence: number;
+  confidence: number | null;
+  /**
+   * What the score rests on, in one sentence ("size not stated - one of
+   * four"). Empty for a score with no reason to give.
+   */
+  why: string;
   /** Увесь рядок аркуша — кандидат заповнює ті самі колонки, що й збіг. */
   item: Record<string, string>;
 }

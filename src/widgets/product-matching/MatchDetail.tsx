@@ -63,6 +63,7 @@ const Option = ({
   under,
   supplier,
   confidence,
+  reason = '',
   mark,
   chosen,
   onPick,
@@ -73,6 +74,8 @@ const Option = ({
   /** Хто його постачає. Порожньо для складського: постачальник там ми самі. */
   supplier: string;
   confidence: number | null;
+  /** Why the score is what it is - "size not stated, one of four". */
+  reason?: string;
   mark: string;
   chosen: boolean;
   onPick?: () => void;
@@ -100,6 +103,11 @@ const Option = ({
       <Confidence value={confidence} bar={false} />
       <small className="mt-0.5 block font-normal text-ink3">{mark}</small>
     </span>
+    {/* Across both columns: the reason reads with the score, and a narrow
+        column would break it into a word per line. */}
+    {reason && (
+      <small className="col-span-2 block font-normal whitespace-normal text-ink3">{reason}</small>
+    )}
   </Button>
 );
 
@@ -185,6 +193,7 @@ export const MatchDetail = ({ row, onPick, onPickManually }: MatchDetailProps) =
               .join(' · ')}
             supplier={shownSupplier(candidate.item)}
             confidence={candidate.confidence}
+            reason={candidate.why}
             mark={markOf(candidate, row, index === 0)}
             chosen={candidate.itemCode === row.itemCode}
             onPick={() => onPick(candidate.itemCode)}

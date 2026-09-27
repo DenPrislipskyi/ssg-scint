@@ -66,15 +66,16 @@ const SAMPLE: RfqDetail = {
         {
           itemCode: 'T69133100',
           description: descriptionOf(sheet('T69133100')),
-          // Скільки відсотків слів запиту несе цей товар. Абсолютне число:
-          // перший у списку більше не 100% просто за те, що він перший.
+          // The same product, and the size agrees; the grade is not stated.
           confidence: 70,
+          why: 'Same bolt and size; the grade is not stated.',
           item: sheet('T69133100'),
         },
         {
           itemCode: 'T69114500',
           description: descriptionOf(sheet('T69114500')),
           confidence: 50,
+          why: 'Same kind of bolt, but a different size.',
           item: sheet('T69114500'),
         },
       ],

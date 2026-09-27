@@ -1,14 +1,15 @@
 import { cn } from '@/shared/lib/cn';
 
-/** Колір скору пошуку: те саме порогове читання, що й у макеті. */
+/** The score's colour: the same thresholds the mock-up reads it by. */
 const tone = (value: number): string =>
   value >= 85 ? 'text-ok' : value >= 60 ? 'text-warn' : 'text-bad';
 
 /**
- * Скор пошуку — відсоток від найкращого кандидата ТІЄЇ Ж позиції.
+ * How sure matching is that a product is what the line asked for, 0-100.
  *
- * Не ймовірність і не порівнюється між позиціями. Смужка повторює число
- * візуально: око ловить її швидше за цифру.
+ * Absolute, so it reads the same on every line; the backend works it out from
+ * what it observed about the product (`confidence.py`). `null` - not scored -
+ * is a dash. The bar repeats the number: the eye catches it faster.
  */
 export const Confidence = ({ value, bar = true }: { value: number | null; bar?: boolean }) => {
   if (value === null) return <span className="text-ink4">—</span>;

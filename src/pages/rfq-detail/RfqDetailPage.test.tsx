@@ -540,6 +540,22 @@ describe('RfqDetailPage', () => {
     expect(alternative).toHaveTextContent('Supplier · Seaboard Industrial Supplies FZE');
   });
 
+  it('says beside each score what it rests on', async () => {
+    // The number alone says how sure; the reason says why - a size nobody
+    // named reads differently from a size that is wrong.
+    const user = userEvent.setup();
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    await user.click((await screen.findByText('T69133100')).closest('tr')!);
+
+    const alternative = screen
+      .getByText('HEX HEAD BOLT/NUT STEEL UNGALV, M8 X 50MM')
+      .closest('button')!;
+    expect(alternative).toHaveTextContent('50 %');
+    expect(alternative).toHaveTextContent('Same kind of bolt, but a different size.');
+  });
+
   it('names no supplier for a product that is already on our shelf', async () => {
     // Позиція 1 — складська. Аркуш несе для неї фірму, але беремо зі свого
     // складу, тож у колонці постачальника нікого.
