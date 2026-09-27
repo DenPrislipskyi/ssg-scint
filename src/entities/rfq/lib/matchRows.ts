@@ -53,6 +53,15 @@ const column = (item: Record<string, string>, heading: string): string => {
 export const customerCodeOf = (item: Record<string, string>): string =>
   column(item, 'Customer Code');
 
+/**
+ * Опис клієнта з аркуша: колонка `Customer Description` знайденого об'єкта.
+ *
+ * Не те саме, що `customerDescription` рядка RFQ. Той — слова клієнта з його
+ * листа, цей — як його товар записано в нас у довіднику.
+ */
+export const customerDescriptionOf = (item: Record<string, string>): string =>
+  column(item, 'Customer Description');
+
 /** Stock / JIT / GPL / CPL — звідки береться товар. */
 export const sourceOf = (item: Record<string, string>): string => column(item, 'Product Source');
 

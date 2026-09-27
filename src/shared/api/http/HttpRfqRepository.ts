@@ -1,6 +1,13 @@
-import { httpClient } from '@/shared/api/httpClient';
-import type { DraftInquiry, RfqRepository } from '@/entities/rfq/api/rfqRepository';
+import { httpBlob, httpClient } from '@/shared/api/httpClient';
+import type { DraftApproval, DraftInquiry, RfqRepository } from '@/entities/rfq/api/rfqRepository';
+import type { QuotationFormat } from '@/entities/rfq/lib/quotation';
 import type { RfqDetail, RfqId } from '@/entities/rfq/model/types';
+
+/** What the backend calls each office's letterhead, for the PDF and the workbook. */
+const LETTERHEAD: Partial<Record<QuotationFormat, string>> = {
+  'SG standard': 'sg',
+  'UAE standard': 'uae',
+};
 
 /** Один RFQ з бекенда агента. */
 export class HttpRfqRepository implements RfqRepository {
@@ -34,6 +41,38 @@ export class HttpRfqRepository implements RfqRepository {
     return httpClient<void>(`/quotes/${encodeURIComponent(id)}/rfq/inquiries`, {
       method: 'PUT',
       body: { inquiries },
+    });
+  }
+
+  approve(id: RfqId, approval: DraftApproval): Promise<void> {
+    return httpClient<void>(`/quotes/${encodeURIComponent(id)}/rfq/approval`, {
+      method: 'PUT',
+      body: approval,
+    });
+  }
+
+  quotationPdf(id: RfqId, format: QuotationFormat): Promise<Blob> {
+    const letterhead = LETTERHEAD[format];
+    if (letterhead === undefined) return Promise.reject(new Error(`${format} has no PDF`));
+    const query = new URLSearchParams({ format: letterhead });
+    return httpBlob(`/quotes/${encodeURIComponent(id)}/rfq/quotation.pdf?${query.toString()}`, {
+      // Rendering a long RFQ takes the server longer than reading one.
+      timeoutMs: 60_000,
+    });
+  }
+
+  quoteWorkbook(id: RfqId, format: QuotationFormat): Promise<Blob> {
+    const letterhead = LETTERHEAD[format];
+    if (letterhead === undefined) return Promise.reject(new Error(`${format} has no workbook`));
+    const query = new URLSearchParams({ format: letterhead });
+    return httpBlob(`/quotes/${encodeURIComponent(id)}/rfq/quotation.xlsm?${query.toString()}`, {
+      timeoutMs: 60_000,
+    });
+  }
+
+  customerFile(id: RfqId): Promise<Blob> {
+    return httpBlob(`/quotes/${encodeURIComponent(id)}/rfq/customer-file.xlsx`, {
+      timeoutMs: 60_000,
     });
   }
 }

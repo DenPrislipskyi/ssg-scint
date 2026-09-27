@@ -1,6 +1,6 @@
 import { costOf, internalUomOf, marginOf, sourceOf } from '@/entities/rfq/lib/matchRows';
 import { needsSourcing } from '@/entities/rfq/lib/sourcing';
-import type { MatchLine } from '@/entities/rfq/model/types';
+import type { Approval, MatchLine } from '@/entities/rfq/model/types';
 import { round2 } from '@/shared/lib/format';
 
 /**
@@ -45,6 +45,8 @@ export const sheetMargins = (lines: MatchLine[]): Margins => ({
 /** Один рядок таблиці Pricing. */
 export interface PricingRow {
   line: number;
+  /** Номер позиції в записі. Ним адресується затвердження ціни. */
+  index: number;
   key: string;
   itemCode: string;
   itemDescription: string;
@@ -114,10 +116,14 @@ export const pricingRows = (lines: MatchLine[], margins: Margins): PricingRow[] 
     const cost = jit ? line.offerUnitPrice : costOf(line.item);
     const margin = jit ? margins.jit : margins.stock;
     const quantity = quantityOf(line);
-    const unitPrice = cost === null ? null : sellingPrice(cost, margin);
+    // Затверджена ціна має перевагу над порахованою. Після підпису
+    // собівартість і націнка ще рухаються, а котирування — ні: інакше воно
+    // перестало б бути числом, яке назвали клієнтові.
+    const unitPrice = line.approvedUnitPrice ?? (cost === null ? null : sellingPrice(cost, margin));
 
     return {
       line: line.line,
+      index: line.index,
       key: `${index}:${line.line}`,
       itemCode: line.itemCode,
       itemDescription: line.itemDescription,
@@ -146,3 +152,66 @@ export const quoteTotal = (rows: PricingRow[]): number =>
 /** Скільки позицій уже мають ціну. */
 export const pricedCount = (rows: PricingRow[]): number =>
   rows.filter((row) => row.total !== null).length;
+
+/**
+ * Чи можна підписувати котирування.
+ *
+ * Тільки коли ціна є на **кожній** позиції. Котирування з діркою — це не
+ * менше котирування, а хибне: у підсумку дірки не видно, вона просто робить
+ * число меншим, і помітити це можна вже після того, як його назвали.
+ */
+export const readyToApprove = (rows: PricingRow[]): boolean =>
+  rows.length > 0 && rows.every((row) => row.unitPrice !== null);
+
+/**
+ * Чому підписувати ще не можна.
+ *
+ * Коротко й по ділу: людина читає це, наводячи мишу на кнопку, яка не
+ * натискається, — їй треба знати, що зробити, а не чому саме так вирішили.
+ */
+export const APPROVE_BLOCKED = 'Make sure every line has a price';
+
+/**
+ * Чому кнопка більше нічого не робить, а поля не редагуються. Одна фраза на
+ * обидва: питання під ними одне — що вже сталося, — і два різні формулювання
+ * читалися б як дві різні причини.
+ */
+export const ALREADY_APPROVED = 'Pricing already approved';
+
+/** Ціни є всі, бракує лише підпису. */
+export const NOT_APPROVED = 'Approve the pricing first';
+
+/**
+ * Чому ще не можна йти далі. Порожньо, коли вже можна.
+ *
+ * Дві різні відповіді, бо це два різні стани: у першому бракує чисел і йти
+ * нема з чим, у другому числа є, а підпису під ними немає. Одна фраза на
+ * обидва відправляла б половину людей шукати ціни, які вже на екрані.
+ *
+ * Одна функція на всіх, хто про це питає — кнопка переходу і четвертий етап
+ * у шапці: дві фрази про одне розійшлися б першої ж правки.
+ */
+export const whyNotFinalised = (rows: PricingRow[], approved: boolean): string | undefined =>
+  approved ? undefined : readyToApprove(rows) ? NOT_APPROVED : APPROVE_BLOCKED;
+
+/** Що саме йде на підпис: дві націнки й ціна на кожну позицію. */
+export const toApproval = (
+  rows: PricingRow[],
+  margins: Margins,
+): { marginStock: number; marginJit: number; lines: { index: number; unitPrice: number }[] } => ({
+  marginStock: margins.stock,
+  marginJit: margins.jit,
+  lines: rows
+    .filter((row) => row.unitPrice !== null)
+    .map((row) => ({ index: row.index, unitPrice: row.unitPrice as number })),
+});
+
+/**
+ * Націнки, які показує екран: затверджені, якщо підпис уже є.
+ *
+ * Після підпису поля показують ті числа, з якими рахували, а не ті, що
+ * лишилися в аркуші: інакше екран пояснював би затверджену ціну націнкою, яка
+ * її не давала.
+ */
+export const shownMargins = (approval: Approval | null, edited: Margins): Margins =>
+  approval ? { stock: approval.marginStock, jit: approval.marginJit } : edited;

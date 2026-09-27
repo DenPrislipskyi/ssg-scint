@@ -5,9 +5,17 @@ import { useBreadcrumb } from '@/app/AppLayout';
 import { paths, RFQ_STAGE } from '@/app/router/paths';
 import { useMargins } from '@/entities/rfq/hooks/useMargins';
 import { useRfq } from '@/entities/rfq/hooks/useRfq';
+import {
+  NOT_APPROVED,
+  pricingRows,
+  shownMargins,
+  whyNotFinalised,
+} from '@/entities/rfq/lib/pricing';
 import { confirmedCount, readyForSourcing, sourcingRows } from '@/entities/rfq/lib/sourcing';
 import { pluralSuffix } from '@/shared/lib/format';
 import { Button } from '@/shared/ui/Button';
+import { Finalisation } from '@/widgets/finalisation/Finalisation';
+import { Quotation } from '@/widgets/finalisation/Quotation';
 import { Pricing } from '@/widgets/pricing/Pricing';
 import { ProductMatchingTable } from '@/widgets/product-matching/ProductMatchingTable';
 import { RfqStages, type StageState } from '@/widgets/rfq-stages/RfqStages';
@@ -42,7 +50,7 @@ export const RfqDetailPage = ({ stage = RFQ_STAGE.matching }: RfqDetailPageProps
   const rfq = useRfq(rfqId);
   // Тут, а не в таблиці: ці самі числа стоять у підписі третього етапу, і
   // дві копії розійшлися б першого ж натискання.
-  const [margins, setMargins] = useMargins(rfqId, rfq.lines);
+  const [edited, setMargins] = useMargins(rfqId, rfq.lines);
   const { setBreadcrumb } = useBreadcrumb();
 
   const reference = rfq.reference;
@@ -60,12 +68,23 @@ export const RfqDetailPage = ({ stage = RFQ_STAGE.matching }: RfqDetailPageProps
   const jit = sourcingRows(rfq.lines);
   const onSourcing = stage === RFQ_STAGE.sourcing;
   const onPricing = stage === RFQ_STAGE.pricing;
+  const onFinal = stage === RFQ_STAGE.finalisation;
+  // Підпис під котируванням — усе, що відмикає четвертий етап. Він у записі,
+  // тож переживає перезавантаження, на відміну від прапорця на клієнті.
+  const approved = rfq.approval !== null;
+  // Після підпису — ті числа, з якими рахували, а не ті, що лишилися в
+  // аркуші: інакше екран пояснював би затверджену ціну націнкою, яка її не
+  // давала, і після перезавантаження суперечив би сам собі.
+  const margins = shownMargins(rfq.approval, edited);
+  // Чому четвертий етап закритий — тією самою фразою, що й кнопка переходу
+  // на третьому: питання одне, і людина має почути одну відповідь.
+  const unfinished = whyNotFinalised(pricingRows(rfq.lines, margins), approved);
 
   const left = total - settled;
   const stages: Partial<Record<number, StageState>> = {
     [RFQ_STAGE.matching]: {
       hint: `${settled} of ${total} line${pluralSuffix(total)} confirmed`,
-      ...(onSourcing || onPricing ? { to: paths.rfq(rfqId) } : {}),
+      ...(onSourcing || onPricing || onFinal ? { to: paths.rfq(rfqId) } : {}),
     },
     // Два різні етапи, а не один із прапорцем: відкритий каже, скільки роботи
     // попереду, закритий — чого бракує, щоб її почати.
@@ -93,11 +112,36 @@ export const RfqDetailPage = ({ stage = RFQ_STAGE.matching }: RfqDetailPageProps
           hint: `${left} line${pluralSuffix(left)} still to confirm`,
           blocked: BLOCKED,
         },
+    // Відмикається підписом, а не підтвердженням позицій: цей екран показує
+    // затверджені числа, і відкритий до підпису він показував би те, що ще
+    // може змінитися.
+    [RFQ_STAGE.finalisation]: ready
+      ? approved
+        ? {
+            hint: `${total} line${pluralSuffix(total)} confirmed`,
+            ...(onFinal ? {} : { to: paths.rfqFinalisation(rfqId) }),
+          }
+        : {
+            // Підпис під назвою каже, чого бракує, а підказка — те саме
+            // розгорнуто: підказка, яку видно лише навівши, не допомагає тому,
+            // хто не здогадався навести.
+            hint: unfinished === NOT_APPROVED ? 'Awaiting approval' : 'Awaiting supplier prices',
+            blocked: unfinished ?? '',
+          }
+      : {
+          hint: `${left} line${pluralSuffix(left)} still to confirm`,
+          blocked: BLOCKED,
+        },
   };
 
   // Закритий етап мусить бути закритий і за посиланням: інакше підказка в
   // шапці — лише прохання не заходити, а адресний рядок його обходить.
-  if ((onSourcing || onPricing) && !ready) return <Navigate to={paths.rfq(rfqId)} replace />;
+  if ((onSourcing || onPricing || onFinal) && !ready) {
+    return <Navigate to={paths.rfq(rfqId)} replace />;
+  }
+  // Гейт четвертого етапу теж не обходиться адресним рядком: підказка, яку
+  // можна обійти, вводила б в оману.
+  if (onFinal && !approved) return <Navigate to={paths.rfqPricing(rfqId)} replace />;
 
   return (
     <div className="mx-auto max-w-[1520px] px-6 pt-5 pb-10">
@@ -118,7 +162,33 @@ export const RfqDetailPage = ({ stage = RFQ_STAGE.matching }: RfqDetailPageProps
 
       <RfqStages current={stage} stages={stages} />
 
-      {onPricing && <Pricing lines={rfq.lines} margins={margins} onMargins={setMargins} />}
+      {onPricing && (
+        <Pricing
+          rfqId={rfqId}
+          lines={rfq.lines}
+          approval={rfq.approval}
+          margins={margins}
+          onMargins={setMargins}
+          onContinue={() => void navigate(paths.rfqFinalisation(rfqId))}
+        />
+      )}
+      {onFinal && (
+        <div className="grid gap-[14px]">
+          <Finalisation lines={rfq.lines} />
+          {/* Keyed by RFQ: the picked format belongs to this document, and
+              moving to another must not show it on a letterhead nobody picked. */}
+          <Quotation
+            key={rfqId}
+            rfqId={rfqId}
+            reference={reference}
+            customer={rfq.customerName}
+            vessel={vessel}
+            port={rfq.port}
+            approvedAt={rfq.approval?.approvedAt ?? ''}
+            lines={rfq.lines}
+          />
+        </div>
+      )}
       {onSourcing && (
         <SupplierSourcing
           rfqId={rfqId}
@@ -129,7 +199,9 @@ export const RfqDetailPage = ({ stage = RFQ_STAGE.matching }: RfqDetailPageProps
           inquiries={rfq.inquiries}
         />
       )}
-      {!onSourcing && !onPricing && <ProductMatchingTable rfqId={rfqId} lines={rfq.lines} />}
+      {!onSourcing && !onPricing && !onFinal && (
+        <ProductMatchingTable rfqId={rfqId} lines={rfq.lines} />
+      )}
     </div>
   );
 };

@@ -1,3 +1,4 @@
+import type { QuotationFormat } from '@/entities/rfq/lib/quotation';
 import type { RfqDetail, RfqId } from '@/entities/rfq/model/types';
 
 /** Лист одному постачальнику — так, як його складає екран, ще без часу. */
@@ -35,4 +36,39 @@ export interface RfqRepository {
    * Кидає, якщо запити з цього RFQ вже пішли: листи йдуть один раз.
    */
   sendInquiries(id: RfqId, inquiries: DraftInquiry[]): Promise<void>;
+  /**
+   * Затвердити ціни — раз і назавжди.
+   *
+   * Ціни йдуть уже порахованими: екран показав їх людині, і перерахунок на
+   * сервері затвердив би число, якого ніхто не бачив.
+   *
+   * Кидає, якщо цей RFQ уже затверджений, або якщо ціна є не на кожній
+   * позиції: котирування з діркою — це не менше котирування, а хибне, і
+   * дірки в підсумку не видно.
+   */
+  approve(id: RfqId, approval: DraftApproval): Promise<void>;
+  /**
+   * The quotation as the customer receives it: a PDF on the chosen letterhead.
+   *
+   * Throws until the pricing is approved - the document is the number named to
+   * the customer, and before approval there is no such number yet.
+   */
+  quotationPdf(id: RfqId, format: QuotationFormat): Promise<Blob>;
+  /**
+   * The quotation in the customer's own spreadsheet layout. The same rule as
+   * the PDF: nothing to download before approval.
+   */
+  customerFile(id: RfqId): Promise<Blob>;
+  /**
+   * The quotation as the desk's own macro workbook (`Quote.xlsm`), on the
+   * chosen office's details. The same rule: nothing before approval.
+   */
+  quoteWorkbook(id: RfqId, format: QuotationFormat): Promise<Blob>;
+}
+
+/** Що саме затверджують: дві націнки й ціна на кожну позицію. */
+export interface DraftApproval {
+  marginStock: number;
+  marginJit: number;
+  lines: { index: number; unitPrice: number }[];
 }

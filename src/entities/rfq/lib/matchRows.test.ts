@@ -37,6 +37,7 @@ const line = (overrides: Partial<MatchLine> = {}): MatchLine => ({
   candidates: [],
   offerUnitPrice: null,
   offerReceivedAt: null,
+  approvedUnitPrice: null,
   ...overrides,
 });
 

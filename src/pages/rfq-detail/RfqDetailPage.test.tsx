@@ -101,10 +101,12 @@ describe('RfqDetailPage', () => {
     expect(stages).toHaveLength(4);
     expect(stages[0]).toHaveAttribute('aria-current', 'step');
     expect(stages[1]).not.toHaveAttribute('aria-current');
-    // Третій етап уже написаний: поки позиції не підтверджені, він каже, чого
-    // бракує, — так само, як другий. Четвертого ще немає.
+    // Третій і четвертий уже написані: закриті вони кажуть, чого бракує, а
+    // не мовчать про те, що їх немає.
     expect(stages[2]).toHaveTextContent('still to confirm');
-    expect(stages[3]).toHaveTextContent('Not in this POC');
+    // Поки позиції не підтверджені, обидва пізніші етапи кажуть про це, а не
+    // про ціни: бракує найпершого, і саме з нього починають.
+    expect(stages[3]).toHaveTextContent('still to confirm');
   });
 
   it('splits the matching table into customer and internal column groups', async () => {
@@ -559,7 +561,9 @@ describe('RfqDetailPage', () => {
     const sourcing = screen.getAllByRole('listitem')[1]!;
     expect(sourcing).toHaveTextContent('3 lines still to confirm');
     expect(within(sourcing).queryByRole('link')).not.toBeInTheDocument();
-    expect(within(sourcing).getByTitle(SHUT)).toBeInTheDocument();
+    // Підказка своя, а не `title`: нативну браузер тримає близько секунди, і
+    // над вимкненим елементом узагалі не показує.
+    expect(within(sourcing).getByRole('tooltip')).toHaveTextContent(SHUT);
   });
 
   it('counts down the lines left to confirm', async () => {

@@ -1,6 +1,7 @@
 import { Link } from 'react-router';
 
 import { cn } from '@/shared/lib/cn';
+import { Explained } from '@/shared/ui/Explained';
 
 /** Чотири етапи POC. Справжніх екранів поки два. */
 const STAGES = [
@@ -85,17 +86,21 @@ export const RfqStages = ({ current, stages = {} }: RfqStagesProps) => (
             // Не `button disabled`: вимкнена кнопка в Chrome не отримує подій
             // миші, і підказка над нею просто не з'являється — а вона тут і є
             // відповіддю на «чому не відкривається».
-            <span
-              title={blocked}
-              aria-disabled={blocked ? true : undefined}
-              className={cn(
-                BOX,
-                isCurrent ? 'border-ink bg-ink text-white' : 'border-line bg-white text-ink',
-                blocked && 'cursor-not-allowed',
-              )}
-            >
-              {body}
-            </span>
+            //
+            // `Explained`, а не `title`: нативну браузер тримає близько
+            // секунди, і людина встигає вирішити, що пояснення немає.
+            <Explained title={blocked} className="w-full">
+              <span
+                aria-disabled={blocked ? true : undefined}
+                className={cn(
+                  BOX,
+                  isCurrent ? 'border-ink bg-ink text-white' : 'border-line bg-white text-ink',
+                  blocked && 'cursor-not-allowed',
+                )}
+              >
+                {body}
+              </span>
+            </Explained>
           )}
         </li>
       );

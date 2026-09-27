@@ -1,6 +1,6 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { RFQ_STAGE } from '@/app/router/paths';
 import { RfqDetailPage } from '@/pages/rfq-detail/RfqDetailPage';
@@ -33,13 +33,17 @@ const PRICING = {
   path: '/rfqs/:rfqId/pricing',
   element: <RfqDetailPage stage={RFQ_STAGE.pricing} />,
 };
+const FINAL = {
+  path: '/rfqs/:rfqId/finalisation',
+  element: <RfqDetailPage stage={RFQ_STAGE.finalisation} />,
+};
 
 /** Другий етап, відкритий за власною адресою — так, як на нього переходять. */
 const renderSourcing = () =>
   renderWithProviders(SOURCING.element, {
     path: SOURCING.path,
     initialEntries: ['/rfqs/sample/sourcing'],
-    siblings: [MATCHING, PRICING],
+    siblings: [MATCHING, PRICING, FINAL],
   });
 
 /**
@@ -51,7 +55,7 @@ const settleEverything = async () => {
   renderWithProviders(MATCHING.element, {
     path: MATCHING.path,
     initialEntries: ['/rfqs/sample'],
-    siblings: [SOURCING, PRICING],
+    siblings: [SOURCING, PRICING, FINAL],
   });
   await screen.findByRole('heading', { level: 1 });
 
@@ -278,7 +282,7 @@ describe('Sorting Product Matching by what the agent was sure of', () => {
     renderWithProviders(MATCHING.element, {
       path: MATCHING.path,
       initialEntries: ['/rfqs/sample'],
-      siblings: [SOURCING, PRICING],
+      siblings: [SOURCING, PRICING, FINAL],
     });
     await screen.findByText('AI confidence');
     return user;
@@ -346,14 +350,320 @@ describe('Pricing', () => {
     expect(pricingStage()).toHaveTextContent('In-Stock 20 % · JIT 15 %');
   });
 
-  it('leads nowhere yet, and says nothing that cannot be read', async () => {
-    await openPricing();
-    const onwards = screen.getByRole('button', { name: /Continue to RFQ Finalisation/ });
+  /**
+   * Той самий екран, але з цінами: доводимо позиції до товару, завантажуємо
+   * відповіді постачальників і повертаємось на третій етап.
+   */
+  const openPricedPricing = async () => {
+    const user = await settleEverything();
+    await user.click(within(screen.getAllByRole('listitem')[1]!).getByRole('link'));
+    await screen.findByText('Supplier offers');
+    await user.click(screen.getByRole('button', { name: SAMPLE }));
+    await waitFor(() => expect(cellsOf(offerRows()[0]!)[PRICE]).not.toBe('—'));
+    await user.click(within(screen.getAllByRole('listitem')[2]!).getByRole('link'));
+    await screen.findByText('Total quote amount');
+    return user;
+  };
 
-    expect(onwards).toBeDisabled();
-    // Підказка тут розкривалася б за нижній край картки й читалася б
-    // обрізаною. Те саме вже сказано в четвертому етапі над таблицею.
-    expect(onwards.parentElement).not.toHaveAttribute('title');
-    expect(within(onwards.parentElement!).queryByRole('tooltip')).not.toBeInTheDocument();
+  const onwards = () => screen.getByRole('button', { name: /Continue to RFQ Finalisation/ });
+  const finalStage = () => screen.getAllByRole('listitem')[3]!;
+
+  it('sends you for the missing prices while any are missing', async () => {
+    await openPricing();
+
+    expect(onwards()).toBeDisabled();
+    expect(within(onwards().parentElement!).getByRole('tooltip')).toHaveTextContent(
+      /Make sure every line has a price/,
+    );
+  });
+
+  it('asks for the signature once the prices are all in', async () => {
+    // Дві різні відповіді на два різні стани: спершу бракує чисел, потім —
+    // підпису під ними.
+    await openPricedPricing();
+
+    expect(onwards()).toBeDisabled();
+    expect(within(onwards().parentElement!).getByRole('tooltip')).toHaveTextContent(
+      /Approve the pricing first/,
+    );
+  });
+
+  it('says on the fourth stage that the prices are what is missing', async () => {
+    await openPricing();
+
+    expect(finalStage()).toHaveTextContent('Awaiting supplier prices');
+    expect(within(finalStage()).queryByRole('link')).not.toBeInTheDocument();
+  });
+
+  it('says on the fourth stage that the signature is what is missing', async () => {
+    await openPricedPricing();
+
+    expect(finalStage()).toHaveTextContent('Awaiting approval');
+    expect(within(finalStage()).queryByRole('link')).not.toBeInTheDocument();
+  });
+});
+
+describe('RFQ Finalisation', () => {
+  const finalStage = () => screen.getAllByRole('listitem')[3]!;
+
+  /**
+   * Весь шлях, як ним іде людина: підтвердити товари, завантажити відповіді,
+   * підписати ціни й перейти на четвертий етап.
+   */
+  const approveAndOpen = async () => {
+    const user = await settleEverything();
+    await user.click(within(screen.getAllByRole('listitem')[1]!).getByRole('link'));
+    await screen.findByText('Supplier offers');
+
+    await user.click(screen.getByRole('button', { name: SAMPLE }));
+    await waitFor(() => expect(cellsOf(offerRows()[0]!)[PRICE]).not.toBe('—'));
+
+    await user.click(within(screen.getAllByRole('listitem')[2]!).getByRole('link'));
+    await screen.findByText('Total quote amount');
+    await user.click(screen.getByRole('button', { name: /Approve/ }));
+    await screen.findByRole('button', { name: /Approved/ });
+
+    await user.click(within(finalStage()).getByRole('link'));
+    await screen.findByText('Confirmed RFQ data · internal review');
+    return user;
+  };
+
+  it('opens only once the pricing has been approved', async () => {
+    await approveAndOpen();
+
+    expect(screen.getByText('Values below are the confirmed values from stages 1–3')).toBeVisible();
+  });
+
+  it('repeats the approved total rather than counting again', async () => {
+    await approveAndOpen();
+    const shown = screen.getByText('Total quote amount').closest('tr')!.textContent;
+
+    expect(shown).toMatch(/\$[\d,]+\.\d{2}/);
+  });
+
+  it('shows every line of the RFQ', async () => {
+    await approveAndOpen();
+
+    const body = screen.getByText('Customer item code').closest('table')!.querySelector('tbody')!;
+    expect(within(body).getAllByRole('row')).toHaveLength(3);
+  });
+
+  it('keeps showing the margins the quotation was signed with', async () => {
+    // Після підпису аркуш більше не має права переписати ці числа: він
+    // пояснював би затверджену ціну націнкою, яка її не давала.
+    const user = await approveAndOpen();
+    await user.click(within(screen.getAllByRole('listitem')[2]!).getByRole('link'));
+    await screen.findByText('Total quote amount');
+
+    expect(screen.getByLabelText('In-Stock margin %')).toHaveValue(12);
+    expect(screen.getAllByRole('listitem')[2]).toHaveTextContent('In-Stock 12 % · JIT 15 %');
+  });
+
+  it('does not carry the Pack size column the prototype had', async () => {
+    await approveAndOpen();
+
+    expect(screen.queryByText('Pack size')).not.toBeInTheDocument();
+  });
+
+  describe('Generate quotation', () => {
+    const sg = () => screen.getByRole('button', { name: 'SG standard' });
+    const uae = () => screen.getByRole('button', { name: 'UAE standard' });
+    const customer = () => screen.getByRole('button', { name: 'Customer file (.xlsx)' });
+    const pdf = () => screen.getByRole('button', { name: 'Download PDF' });
+    const excel = () => screen.getByRole('button', { name: 'Download Excel' });
+    const tooltipOf = (button: HTMLElement) => within(button.parentElement!).getByRole('tooltip');
+
+    /** Record what the page hands the browser to save, instead of saving it. */
+    const capturingSaves = () => {
+      const saved: string[] = [];
+      const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
+        this: HTMLAnchorElement,
+      ) {
+        saved.push(this.download);
+      });
+      // jsdom has no object URLs; these stand in for the browser's and are put
+      // back afterwards, so no other test inherits them.
+      const original = { create: URL.createObjectURL, revoke: URL.revokeObjectURL };
+      URL.createObjectURL = vi.fn(() => 'blob:quotation');
+      URL.revokeObjectURL = vi.fn();
+      const restore = () => {
+        click.mockRestore();
+        URL.createObjectURL = original.create;
+        URL.revokeObjectURL = original.revoke;
+      };
+      return { saved, restore };
+    };
+
+    it('shows no document until a format is picked', async () => {
+      // Until then it is not known whose letterhead the document goes out on.
+      await approveAndOpen();
+
+      expect(sg()).toHaveAttribute('aria-pressed', 'false');
+      expect(screen.queryByText(/^Quotation · /)).not.toBeInTheDocument();
+    });
+
+    it('previews the SG form once it is picked', async () => {
+      const user = await approveAndOpen();
+
+      await user.click(sg());
+
+      expect(sg()).toHaveAttribute('aria-pressed', 'true');
+      expect(screen.getByRole('heading', { name: 'Quotation · SG standard' })).toBeVisible();
+      expect(screen.getByText('Seven Seas Group · Singapore')).toBeVisible();
+      expect(screen.getByText(/^Prices in USD/)).toBeVisible();
+    });
+
+    it('quotes every line, at the same total as the table above', async () => {
+      // Two counts of one quotation on one screen are two quotations.
+      const user = await approveAndOpen();
+      await user.click(sg());
+
+      const document = screen.getByText('Total (USD)').closest('table')!;
+      const reviewed = screen.getByText('Total quote amount').closest('tr')!.lastChild!.textContent;
+
+      expect(within(document.querySelector('tbody')!).getAllByRole('row')).toHaveLength(3);
+      expect(screen.getByText('Total (USD)').closest('tr')!.lastChild!.textContent).toBe(reviewed);
+    });
+
+    it('does not carry the Pack column the prototype had', async () => {
+      const user = await approveAndOpen();
+      await user.click(sg());
+
+      const document = screen.getByText('Total (USD)').closest('table')!;
+      expect(within(document).queryByText('Pack')).not.toBeInTheDocument();
+    });
+
+    it('asks for a format before it offers the PDF', async () => {
+      await approveAndOpen();
+
+      expect(pdf()).toBeDisabled();
+      expect(tooltipOf(pdf())).toHaveTextContent('Pick a quotation format first');
+      expect(excel()).toBeDisabled();
+      expect(tooltipOf(excel())).toHaveTextContent('Pick a quotation format first');
+    });
+
+    it('saves the PDF under the RFQ number', async () => {
+      const { saved, restore } = capturingSaves();
+      try {
+        const user = await approveAndOpen();
+        await user.click(sg());
+        await user.click(pdf());
+
+        await waitFor(() => expect(saved).toEqual(['RFQ-0042_quotation.pdf']));
+      } finally {
+        restore();
+      }
+    });
+
+    it('offers the SG form as both files', async () => {
+      const user = await approveAndOpen();
+      await user.click(sg());
+
+      expect(pdf()).toBeEnabled();
+      expect(excel()).toBeEnabled();
+    });
+
+    it('saves the SG workbook under its own name', async () => {
+      const { saved, restore } = capturingSaves();
+      try {
+        const user = await approveAndOpen();
+        await user.click(sg());
+        await user.click(excel());
+
+        await waitFor(() => expect(saved).toEqual(['RFQ-0042_quotation_sg.xlsm']));
+      } finally {
+        restore();
+      }
+    });
+
+    it('previews the UAE form from the Dubai office', async () => {
+      const user = await approveAndOpen();
+
+      await user.click(uae());
+
+      expect(uae()).toHaveAttribute('aria-pressed', 'true');
+      expect(sg()).toHaveAttribute('aria-pressed', 'false');
+      expect(screen.getByRole('heading', { name: 'Quotation · UAE standard' })).toBeVisible();
+      expect(screen.getByText('Seven Seas Group · Dubai / Fujairah')).toBeVisible();
+    });
+
+    it('offers the UAE form as both files', async () => {
+      const user = await approveAndOpen();
+      await user.click(uae());
+
+      expect(pdf()).toBeEnabled();
+      expect(excel()).toBeEnabled();
+    });
+
+    it('saves the UAE workbook under its own name', async () => {
+      const { saved, restore } = capturingSaves();
+      try {
+        const user = await approveAndOpen();
+        await user.click(uae());
+        await user.click(excel());
+
+        await waitFor(() => expect(saved).toEqual(['RFQ-0042_quotation_uae.xlsm']));
+      } finally {
+        restore();
+      }
+    });
+
+    it('saves the UAE PDF under the RFQ number', async () => {
+      const { saved, restore } = capturingSaves();
+      try {
+        const user = await approveAndOpen();
+        await user.click(uae());
+        await user.click(pdf());
+
+        await waitFor(() => expect(saved).toEqual(['RFQ-0042_quotation.pdf']));
+      } finally {
+        restore();
+      }
+    });
+
+    it("previews the customer's file in their own words", async () => {
+      const user = await approveAndOpen();
+
+      await user.click(customer());
+
+      expect(
+        screen.getByRole('heading', { name: 'Quotation · Customer file (.xlsx)' }),
+      ).toBeVisible();
+      expect(screen.getByText("Populated into the customer's own file structure")).toBeVisible();
+      // The same description the fourth-stage table shows as the customer's.
+      const reviewed = screen.getByText('Customer description').closest('table')!;
+      const theirs = within(reviewed.querySelector('tbody')!)
+        .getAllByRole('row')
+        .map((row) => within(row).getAllByRole('cell')[2]!.textContent);
+      const document = screen.getByText('Total (USD)').closest('table')!;
+      const shown = within(document.querySelector('tbody')!)
+        .getAllByRole('row')
+        .map((row) => within(row).getAllByRole('cell')[2]!.textContent);
+      expect(shown).toEqual(theirs);
+      // Not a match of two columns of dashes.
+      expect(shown.some((text) => text !== '—')).toBe(true);
+    });
+
+    it("offers the customer's file as Excel and not as PDF", async () => {
+      const user = await approveAndOpen();
+      await user.click(customer());
+
+      expect(excel()).toBeEnabled();
+      expect(pdf()).toBeDisabled();
+      expect(tooltipOf(pdf())).toHaveTextContent('Customer file (.xlsx) is Excel only');
+    });
+
+    it("saves the customer's file under the RFQ number", async () => {
+      const { saved, restore } = capturingSaves();
+      try {
+        const user = await approveAndOpen();
+        await user.click(customer());
+        await user.click(excel());
+
+        await waitFor(() => expect(saved).toEqual(['RFQ-0042_customer_file.xlsx']));
+      } finally {
+        restore();
+      }
+    });
   });
 });

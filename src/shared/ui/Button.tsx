@@ -1,6 +1,7 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
 import { cn } from '@/shared/lib/cn';
+import { Explained } from '@/shared/ui/Explained';
 
 type Variant = 'default' | 'primary' | 'blue' | 'warning' | 'ghost';
 type Size = 'xs' | 'md' | 'lg';
@@ -77,23 +78,5 @@ export const Button = ({
   );
 
   if (!explains) return button;
-
-  return (
-    <span className="group relative inline-flex cursor-default">
-      {button}
-      {/* Під кнопкою, а не над: віджети мають `overflow-hidden`, і підказка
-          над кнопкою в шапці була б обрізана по верхньому краю картки.
-          Притиснута правим краєм — росте всередину, а не за межі екрана. */}
-      <span
-        role="tooltip"
-        className={cn(
-          'pointer-events-none absolute top-[calc(100%+6px)] right-0 z-20 hidden',
-          'max-w-[260px] rounded-md bg-ink px-2 py-1 text-[12px] leading-snug',
-          'font-normal whitespace-normal text-white group-hover:block',
-        )}
-      >
-        {title}
-      </span>
-    </span>
-  );
+  return <Explained title={title}>{button}</Explained>;
 };

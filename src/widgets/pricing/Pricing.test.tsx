@@ -1,10 +1,13 @@
-import { render, screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import { useState } from 'react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
+import type { DraftApproval } from '@/entities/rfq/api/rfqRepository';
 import { sheetMargins, type Margins } from '@/entities/rfq/lib/pricing';
-import type { MatchLine } from '@/entities/rfq/model/types';
+import type { Approval, MatchLine } from '@/entities/rfq/model/types';
+import { createMockRepositories, type Repositories } from '@/shared/api/createRepositories';
+import { renderWithProviders } from '@/test/renderWithProviders';
 import { Pricing } from '@/widgets/pricing/Pricing';
 
 const sheetRow = (source: string, price: string, margin: string) => ({
@@ -36,6 +39,7 @@ const line = (overrides: Partial<MatchLine> = {}): MatchLine => ({
   confirmedItemCode: 'T69133100',
   offerUnitPrice: null,
   offerReceivedAt: null,
+  approvedUnitPrice: null,
   ...overrides,
 });
 
@@ -45,9 +49,41 @@ const line = (overrides: Partial<MatchLine> = {}): MatchLine => ({
  * Стан живе над таблицею, бо ті самі числа стоять і в підписі етапу; тут він
  * підміняється найменшим, що вміє те саме.
  */
-const Screen = ({ lines }: { lines: MatchLine[] }) => {
+const Screen = ({
+  lines,
+  approval = null,
+  onContinue = () => {},
+}: {
+  lines: MatchLine[];
+  approval?: Approval | null;
+  onContinue?: () => void;
+}) => {
   const [margins, setMargins] = useState<Margins>(() => sheetMargins(lines));
-  return <Pricing lines={lines} margins={margins} onMargins={setMargins} />;
+  return (
+    <Pricing
+      rfqId="sample"
+      lines={lines}
+      approval={approval}
+      margins={margins}
+      onMargins={setMargins}
+      onContinue={onContinue}
+    />
+  );
+};
+
+/** Екран із провайдерами: кнопка Approve ходить у репозиторій. */
+const render = (ui: React.ReactElement, repositories?: Repositories) =>
+  renderWithProviders(ui, {
+    path: '/rfqs/:rfqId/pricing',
+    initialEntries: ['/rfqs/sample/pricing'],
+    ...(repositories ? { repositories } : {}),
+  });
+
+/** Підпис, як його віддає запис. */
+const SIGNED: Approval = {
+  approvedAt: '2026-09-25T16:40:00Z',
+  marginStock: 12,
+  marginJit: 15,
 };
 
 /** Клітинки рядка таблиці, по його номеру позиції. */
@@ -125,9 +161,109 @@ describe('Pricing', () => {
     expect(screen.getByText('1 of 2 lines priced')).toBeInTheDocument();
   });
 
-  it('leads nowhere yet, because the fourth stage is not in this POC', () => {
+  it('will not move on until the pricing is approved', () => {
     render(<Screen lines={[line()]} />);
 
     expect(screen.getByRole('button', { name: /Continue to RFQ Finalisation/ })).toBeDisabled();
+  });
+});
+
+describe('Approving the pricing', () => {
+  /** Репозиторії, що записують, що саме пішло на підпис. */
+  const listening = () => {
+    const repositories = createMockRepositories();
+    const signed: DraftApproval[] = [];
+    repositories.rfqs.approve = async (_id, approval) => {
+      signed.push(approval);
+    };
+    return { repositories, signed };
+  };
+
+  const approveButton = () => screen.getByRole('button', { name: /Approve/ });
+
+  it('cannot be approved while a line is still waiting on its supplier', () => {
+    // Котирування з діркою — це не менше котирування, а хибне: у підсумку
+    // дірки не видно, вона просто робить число меншим.
+    render(<Screen lines={[line(), line({ index: 2, line: 2, item: JIT })]} />);
+
+    expect(approveButton()).toBeDisabled();
+    expect(within(approveButton().parentElement!).getByRole('tooltip')).toHaveTextContent(
+      /Make sure every line has a price/,
+    );
+  });
+
+  it('can be approved once every line has a price', () => {
+    render(<Screen lines={[line(), line({ index: 2, line: 2, item: JIT, offerUnitPrice: 5 })]} />);
+
+    expect(approveButton()).toBeEnabled();
+  });
+
+  it('signs the prices the screen showed, not the inputs to them', async () => {
+    const user = userEvent.setup();
+    const { repositories, signed } = listening();
+    // Обидва джерела, бо підписують і ті, і ті — і націнки в них різні.
+    render(
+      <Screen lines={[line(), line({ index: 2, line: 2, item: JIT, offerUnitPrice: 5 })]} />,
+      repositories,
+    );
+
+    await user.click(approveButton());
+
+    await waitFor(() => expect(signed).toHaveLength(1));
+    expect(signed[0]).toEqual({
+      marginStock: 12,
+      marginJit: 15,
+      lines: [
+        { index: 1, unitPrice: 28 },
+        { index: 2, unitPrice: 5.75 },
+      ],
+    });
+  });
+
+  it('signs the margin a person typed, not the one the sheet named', async () => {
+    const user = userEvent.setup();
+    const { repositories, signed } = listening();
+    render(<Screen lines={[line()]} />, repositories);
+
+    await user.clear(screen.getByLabelText('In-Stock margin %'));
+    await user.type(screen.getByLabelText('In-Stock margin %'), '50');
+    await user.click(approveButton());
+
+    await waitFor(() => expect(signed).toHaveLength(1));
+    expect(signed[0]).toMatchObject({ marginStock: 50, lines: [{ index: 1, unitPrice: 37.5 }] });
+  });
+
+  it('locks both margins once it is signed, and says why', () => {
+    render(<Screen lines={[line()]} approval={SIGNED} />);
+
+    expect(screen.getByLabelText('In-Stock margin %')).toHaveAttribute('readonly');
+    expect(screen.getByLabelText('JIT margin %')).toHaveAttribute('readonly');
+    // Підказка своя, а не `title`: нативну браузер тримає близько секунди.
+    const field = screen.getByLabelText('In-Stock margin %').closest('label')!.parentElement!;
+    expect(within(field).getByRole('tooltip')).toHaveTextContent(/approved/);
+  });
+
+  it('will not be signed twice', () => {
+    render(<Screen lines={[line()]} approval={SIGNED} />);
+
+    expect(approveButton()).toBeDisabled();
+  });
+
+  it('opens the way onwards once it is signed', async () => {
+    const user = userEvent.setup();
+    const onwards = vi.fn();
+    render(<Screen lines={[line()]} approval={SIGNED} onContinue={onwards} />);
+
+    await user.click(screen.getByRole('button', { name: /Continue to RFQ Finalisation/ }));
+
+    expect(onwards).toHaveBeenCalledOnce();
+  });
+
+  it('shows the price that was signed, not the one it would compute now', () => {
+    // Після підпису собівартість і націнка ще рухаються, а котирування — ні.
+    render(<Screen lines={[line({ approvedUnitPrice: 99.5 })]} approval={SIGNED} />);
+
+    expect(cellsOf(1)[UNIT]).toBe('$99.50');
+    expect(cellsOf(1)[TOTAL]).toBe('$995.00');
   });
 });

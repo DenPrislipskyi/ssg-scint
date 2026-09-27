@@ -40,6 +40,7 @@ const line = (overrides: Partial<MatchLine> = {}): MatchLine => ({
   confirmedItemCode: 'T69133100',
   offerUnitPrice: null,
   offerReceivedAt: null,
+  approvedUnitPrice: null,
   ...overrides,
 });
 

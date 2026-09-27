@@ -1,14 +1,21 @@
+import { useApprovePricing } from '@/entities/rfq/hooks/useApprovePricing';
 import {
+  ALREADY_APPROVED,
+  APPROVE_BLOCKED,
   pricedCount,
   pricingRows,
   quoteTotal,
+  readyToApprove,
+  toApproval,
+  whyNotFinalised,
   type Margins,
   type PricingRow,
 } from '@/entities/rfq/lib/pricing';
-import type { MatchLine } from '@/entities/rfq/model/types';
+import type { Approval, MatchLine, RfqId } from '@/entities/rfq/model/types';
 import { pluralSuffix, usd } from '@/shared/lib/format';
 import { cn } from '@/shared/lib/cn';
 import { Button } from '@/shared/ui/Button';
+import { Explained } from '@/shared/ui/Explained';
 
 /** Порожнє значення показуємо прочерком, а не ховаємо і не вигадуємо. */
 const EMPTY = <span className="text-ink4">—</span>;
@@ -28,8 +35,14 @@ const COLUMNS = 10;
 const MARGIN_STEP = 0.5;
 const MOST_A_MARGIN_IS = 1000;
 
+const APPROVING = 'Approving…';
+
 export interface PricingProps {
+  rfqId: RfqId;
   lines: MatchLine[];
+  /** Підпис під котируванням. `null` — його ще не ставили. */
+  approval: Approval | null;
+  onContinue: () => void;
   /**
    * Націнки, з якими рахувати. Приходять ззовні, бо ті самі числа стоять і в
    * підписі етапу над таблицею — а одне число у двох станах перестає бути
@@ -50,10 +63,30 @@ export interface PricingProps {
  * Націнка живе, доки відкрита сторінка. Вона не записується: у POC це спосіб
  * подивитися, як зміниться сума, а не рішення, яке хтось ухвалив.
  */
-export const Pricing = ({ lines, margins, onMargins }: PricingProps) => {
+export const Pricing = ({
+  rfqId,
+  lines,
+  approval,
+  margins,
+  onMargins,
+  onContinue,
+}: PricingProps) => {
+  const approve = useApprovePricing(rfqId);
   const rows = pricingRows(lines, margins);
   const priced = pricedCount(rows);
   const total = quoteTotal(rows);
+
+  // Підписано — числа більше не належать цьому екрану. Поля замикаються, і
+  // кнопка теж: другий підпис зрушив би ціну, яку клієнтові вже могли назвати.
+  const signed = approval !== null;
+  const cannotApprove = signed
+    ? ALREADY_APPROVED
+    : readyToApprove(rows)
+      ? undefined
+      : APPROVE_BLOCKED;
+  // Та сама відповідь, що й у четвертого етапу в шапці: питання одне, і дві
+  // фрази про нього розійшлися б першої ж правки.
+  const cannotContinue = whyNotFinalised(rows, signed);
 
   return (
     <div className="overflow-hidden rounded-xl border border-line bg-white">
@@ -62,11 +95,13 @@ export const Pricing = ({ lines, margins, onMargins }: PricingProps) => {
         <MarginField
           label="In-Stock margin %"
           value={margins.stock}
+          locked={signed}
           onChange={(stock) => onMargins({ ...margins, stock })}
         />
         <MarginField
           label="JIT margin %"
           value={margins.jit}
+          locked={signed}
           onChange={(jit) => onMargins({ ...margins, jit })}
         />
         <span className="text-[13px] text-ink3">
@@ -149,13 +184,30 @@ export const Pricing = ({ lines, margins, onMargins }: PricingProps) => {
           {priced} of {rows.length} line{pluralSuffix(rows.length)} priced
         </span>
         <span className="ml-auto" />
-        {/* Веде в етап, якого немає. Кнопка стоїть, бо вона є в макеті й
-            каже, що буде далі, — але вдавати перехід їй нема куди.
-
-            Без підказки: вона розкривалася б униз, за нижній край картки, і
-            людина бачила б її обрізаний верх замість пояснення. Те саме вже
-            сказано в четвертому етапі над таблицею — «Not in this POC». */}
-        <Button variant="primary" className="px-3" disabled>
+        {/* Підпис іде перед переходом, а не після: четвертий етап показує
+            затверджені числа, і відкритий до підпису він показував би те, що
+            ще може змінитися. */}
+        <Button
+          // Той самий вигляд, що й у `Confirmed ✓` на екрані мапінгу: там теж
+          // `disabled` означає «нема чого робити», а не «недоступно», і
+          // вицвітання зробило б зелений із макета сірим.
+          className={cn(
+            'px-3',
+            signed && 'border-ok bg-ok-soft text-ok hover:bg-ok-soft disabled:opacity-100',
+          )}
+          disabled={cannotApprove !== undefined || approve.isPending}
+          {...(cannotApprove ? { title: cannotApprove } : {})}
+          onClick={() => approve.mutate(toApproval(rows, margins))}
+        >
+          {approve.isPending ? APPROVING : signed ? 'Approved ✓' : 'Approve'}
+        </Button>
+        <Button
+          variant="primary"
+          className="px-3"
+          disabled={cannotContinue !== undefined}
+          {...(cannotContinue ? { title: cannotContinue } : {})}
+          onClick={onContinue}
+        >
           Continue to RFQ Finalisation →
         </Button>
       </div>
@@ -222,27 +274,42 @@ const SourceBadge = ({ source, jit }: { source: string; jit: boolean }) =>
 const MarginField = ({
   label,
   value,
+  locked,
   onChange,
 }: {
   label: string;
   value: number;
+  /** Ціни вже підписані, і націнка, яка їх дала, більше не змінюється. */
+  locked: boolean;
   onChange: (value: number) => void;
 }) => (
-  <label className="inline-flex items-center gap-2 text-[13px] text-ink2">
-    {label}
-    <input
-      type="number"
-      step={MARGIN_STEP}
-      min={0}
-      max={MOST_A_MARGIN_IS}
-      value={value}
-      onChange={(event) => {
-        // Порожнє поле — це людина, що стирає, щоб набрати інше число, а не
-        // націнка, якої немає. До наступного символу тримаємо нуль.
-        const next = Number(event.target.value);
-        onChange(Number.isFinite(next) ? next : 0);
-      }}
-      className="w-20 rounded-md border border-line bg-white px-2 py-1.5 text-right text-[13px]"
-    />
-  </label>
+  // Та сама підказка й те саме формулювання, що на кнопці: нативну браузер
+  // тримає близько секунди, а дві фрази про одне читалися б як дві причини.
+  //
+  // На всьому полі разом із підписом, а не на самому `input`: питання «чому
+  // не змінюється» виникає, коли курсор іще підходить до числа.
+  <Explained title={locked ? ALREADY_APPROVED : undefined}>
+    <label className="inline-flex items-center gap-2 text-[13px] text-ink2">
+      {label}
+      <input
+        type="number"
+        step={MARGIN_STEP}
+        min={0}
+        max={MOST_A_MARGIN_IS}
+        value={value}
+        readOnly={locked}
+        aria-readonly={locked}
+        onChange={(event) => {
+          // Порожнє поле — це людина, що стирає, щоб набрати інше число, а не
+          // націнка, якої немає. До наступного символу тримаємо нуль.
+          const next = Number(event.target.value);
+          onChange(Number.isFinite(next) ? next : 0);
+        }}
+        className={cn(
+          'w-20 rounded-md border border-line px-2 py-1.5 text-right text-[13px]',
+          locked ? 'cursor-default bg-sel text-ink3' : 'bg-white',
+        )}
+      />
+    </label>
+  </Explained>
 );

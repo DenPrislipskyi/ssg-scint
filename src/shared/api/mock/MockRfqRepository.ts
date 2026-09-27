@@ -1,5 +1,12 @@
-import type { DraftInquiry, RfqRepository } from '@/entities/rfq/api/rfqRepository';
-import type { MatchLine, RfqDetail, RfqId, SentInquiry } from '@/entities/rfq/model/types';
+import type { DraftApproval, DraftInquiry, RfqRepository } from '@/entities/rfq/api/rfqRepository';
+import type {
+  Approval,
+  MatchLine,
+  RfqDetail,
+  RfqId,
+  SentInquiry,
+} from '@/entities/rfq/model/types';
+import type { QuotationFormat } from '@/entities/rfq/lib/quotation';
 import { descriptionOf, findInSheet } from '@/shared/api/mock/fixtures/sheet';
 import { mockDelay } from '@/shared/api/mock/mockDelay';
 
@@ -40,6 +47,7 @@ const SAMPLE: RfqDetail = {
       confirmedItemCode: '',
       offerUnitPrice: null,
       offerReceivedAt: null,
+      approvedUnitPrice: null,
     },
     {
       line: 2,
@@ -73,6 +81,7 @@ const SAMPLE: RfqDetail = {
       confirmedItemCode: '',
       offerUnitPrice: null,
       offerReceivedAt: null,
+      approvedUnitPrice: null,
     },
     {
       line: 3,
@@ -91,10 +100,12 @@ const SAMPLE: RfqDetail = {
       confirmedItemCode: '',
       offerUnitPrice: null,
       offerReceivedAt: null,
+      approvedUnitPrice: null,
     },
   ],
   // Нікого ще не питали: фікстура — це RFQ, щойно доведений до другого етапу.
   inquiries: [],
+  approval: null,
 };
 
 export class MockRfqRepository implements RfqRepository {
@@ -106,6 +117,10 @@ export class MockRfqRepository implements RfqRepository {
   private readonly received = new Map<number, string>();
   /** Листи, що пішли. Порожньо, поки ніхто не натискав Send Web Inquiry. */
   private sent: SentInquiry[] = [];
+  /** Підпис під котируванням. `null`, поки ніхто не затверджував. */
+  private signed: Approval | null = null;
+  /** Затверджені ціни за одиницю, по номеру позиції в записі. */
+  private readonly frozen = new Map<number, number>();
 
   async getById(id: RfqId): Promise<RfqDetail> {
     await mockDelay(80);
@@ -114,6 +129,7 @@ export class MockRfqRepository implements RfqRepository {
       id,
       lines: SAMPLE.lines.map((line) => this.showing(line)),
       inquiries: [...this.sent],
+      approval: this.signed,
     };
   }
 
@@ -125,9 +141,18 @@ export class MockRfqRepository implements RfqRepository {
   private showing(line: MatchLine): MatchLine {
     const offerUnitPrice = this.quoted.get(line.index) ?? null;
     const offerReceivedAt = this.received.get(line.index) ?? null;
+    const approvedUnitPrice = this.frozen.get(line.index) ?? null;
     const code = this.settled.get(line.index) ?? '';
     const product = code ? findInSheet(code) : undefined;
-    if (!product) return { ...line, confirmedItemCode: code, offerUnitPrice, offerReceivedAt };
+    if (!product) {
+      return {
+        ...line,
+        confirmedItemCode: code,
+        offerUnitPrice,
+        offerReceivedAt,
+        approvedUnitPrice,
+      };
+    }
 
     // Оцінка є тільки в того, хто був у списку: товар, обраний руками, людина
     // обрала сама, і покриття слів не було причиною.
@@ -136,6 +161,7 @@ export class MockRfqRepository implements RfqRepository {
       ...line,
       offerUnitPrice,
       offerReceivedAt,
+      approvedUnitPrice,
       confirmedItemCode: code,
       itemCode: code,
       itemDescription: descriptionOf(product),
@@ -184,5 +210,53 @@ export class MockRfqRepository implements RfqRepository {
 
     const sentAt = new Date().toISOString();
     this.sent = inquiries.map((one) => ({ ...one, lines: [...one.lines], sentAt }));
+  }
+
+  async approve(_id: RfqId, approval: DraftApproval): Promise<void> {
+    await mockDelay(30);
+    // Один раз, як і на бекенді: назад дороги немає.
+    if (this.signed) throw new Error('This pricing has already been approved');
+
+    const missing = SAMPLE.lines.filter(
+      (line) => !approval.lines.some((one) => one.index === line.index),
+    );
+    if (missing.length > 0) throw new Error('No price for every line');
+
+    for (const { index, unitPrice } of approval.lines) this.frozen.set(index, unitPrice);
+    this.signed = {
+      approvedAt: new Date().toISOString(),
+      marginStock: approval.marginStock,
+      marginJit: approval.marginJit,
+    };
+  }
+
+  /**
+   * A stand-in file, not a quotation: the document is drawn by the backend,
+   * and a second renderer here would be a second form to keep in step with
+   * the desk's. What this does hold to is the backend's rule - nothing to
+   * download before approval.
+   */
+  async quotationPdf(_id: RfqId, format: QuotationFormat): Promise<Blob> {
+    await mockDelay(30);
+    if (!this.signed) throw new Error('This pricing has not been approved yet');
+    return new Blob([`%PDF-1.4\n% mock quotation, ${format}\n`], { type: 'application/pdf' });
+  }
+
+  /** A stand-in as well: the backend fills the desk's workbook. */
+  async quoteWorkbook(_id: RfqId, format: QuotationFormat): Promise<Blob> {
+    await mockDelay(30);
+    if (!this.signed) throw new Error('This pricing has not been approved yet');
+    return new Blob([`mock quote workbook, ${format}`], {
+      type: 'application/vnd.ms-excel.sheet.macroEnabled.12',
+    });
+  }
+
+  /** A stand-in as well, for the same reason: the backend fills the template. */
+  async customerFile(_id: RfqId): Promise<Blob> {
+    await mockDelay(30);
+    if (!this.signed) throw new Error('This pricing has not been approved yet');
+    return new Blob(['mock customer file'], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
   }
 }
