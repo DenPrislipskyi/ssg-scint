@@ -2,11 +2,13 @@ import type { DraftApproval, DraftInquiry, RfqRepository } from '@/entities/rfq/
 import type {
   Approval,
   MatchLine,
+  QuotationPreview,
   RfqDetail,
   RfqId,
   SentInquiry,
 } from '@/entities/rfq/model/types';
 import type { QuotationFormat } from '@/entities/rfq/lib/quotation';
+import { mockQuotationPreview } from '@/shared/api/mock/fixtures/quotationPreview';
 import { descriptionOf, findInSheet } from '@/shared/api/mock/fixtures/sheet';
 import { mockDelay } from '@/shared/api/mock/mockDelay';
 
@@ -199,6 +201,10 @@ export class MockRfqRepository implements RfqRepository {
       this.received.delete(index);
       return;
     }
+    // The backend's rule: a supplier answers a letter, and none went out yet.
+    if (!this.sent.some((one) => one.lines.includes(index))) {
+      throw new Error('Nobody has been asked about this line yet');
+    }
     this.quoted.set(index, unitPrice);
     this.received.set(index, new Date().toISOString());
   }
@@ -241,6 +247,14 @@ export class MockRfqRepository implements RfqRepository {
     await mockDelay(30);
     if (!this.signed) throw new Error('This pricing has not been approved yet');
     return new Blob([`%PDF-1.4\n% mock quotation, ${format}\n`], { type: 'application/pdf' });
+  }
+
+  /** A stand-in layout, under the same rule: nothing to preview before approval. */
+  async quotationPreview(id: RfqId, format: QuotationFormat): Promise<QuotationPreview> {
+    await mockDelay(30);
+    if (!this.signed) throw new Error('This pricing has not been approved yet');
+    const { lines, reference } = await this.getById(id);
+    return mockQuotationPreview(format, lines, reference);
   }
 
   /** A stand-in as well: the backend fills the desk's workbook. */

@@ -136,3 +136,53 @@ export interface RfqDetail {
    */
   approval: Approval | null;
 }
+
+/** One grey-headed block of the quotation form, and its label/value rows. */
+export interface QuotationPanel {
+  title: string;
+  rows: [label: string, value: string][];
+  /** Room for three lines under the last row, as the billing address has. */
+  tall: boolean;
+}
+
+export interface QuotationColumn {
+  name: string;
+  align: 'left' | 'center' | 'right';
+  /** In points, as the PDF sets it - the preview divides its width alike. */
+  width: number;
+}
+
+export interface QuotationTotal {
+  label: string;
+  value: string;
+  /** In the larger bold face, as Subtotal and the final total are. */
+  strong: boolean;
+  /** On a grey band, as Subtotal is. */
+  shaded: boolean;
+}
+
+/**
+ * What the quotation PDF prints, block by block, with every value already
+ * written as the page prints it. Built by the backend from the same layout the
+ * PDF is drawn from, so the preview says exactly what the download will.
+ */
+export interface QuotationPreview {
+  /** The mark as a data URI; `null` when the backend has no logo file. */
+  logo: string | null;
+  letterhead: {
+    name: string;
+    address: string;
+    /** Printed beside the address on the Singapore form; empty elsewhere. */
+    registration: string;
+    phone: string;
+    email: string;
+    web: string;
+  };
+  banner: string;
+  pairs: [QuotationPanel, QuotationPanel][];
+  terms: QuotationPanel;
+  currency: string;
+  columns: QuotationColumn[];
+  rows: string[][];
+  totals: QuotationTotal[];
+}

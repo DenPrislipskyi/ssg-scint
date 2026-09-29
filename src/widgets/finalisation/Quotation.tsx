@@ -1,9 +1,11 @@
 import { useState } from 'react';
 
 import { useDownloadQuotation } from '@/entities/rfq/hooks/useDownloadQuotation';
+import { useQuotationPreview } from '@/entities/rfq/hooks/useQuotationPreview';
 import { finalRows, finalTotal, type FinalRow } from '@/entities/rfq/lib/finalisation';
 import {
   descriptionSourceOf,
+  isCustomerLayout,
   issuerOf,
   QUOTATION_FORMATS,
   quotationDate,
@@ -16,6 +18,7 @@ import type { MatchLine, RfqId } from '@/entities/rfq/model/types';
 import { cn } from '@/shared/lib/cn';
 import { usd } from '@/shared/lib/format';
 import { Button } from '@/shared/ui/Button';
+import { QuotationSheet } from '@/widgets/finalisation/QuotationSheet';
 
 /** An empty value shows as a dash - neither hidden nor made up. */
 const EMPTY = <span className="text-ink4">—</span>;
@@ -97,11 +100,37 @@ export const Quotation = ({ rfqId, reference, ...document }: QuotationProps) => 
         {downloadButton('pdf', 'Download PDF', 'primary')}
       </div>
 
-      {format !== null && <Document format={format} reference={reference} {...document} />}
+      {format !== null &&
+        (isCustomerLayout(format) ? (
+          <Document format={format} reference={reference} {...document} />
+        ) : (
+          <LetterheadPreview rfqId={rfqId} format={format} />
+        ))}
     </div>
   );
 };
 
+/**
+ * Our letterhead, previewed as its PDF prints it. The layout is the backend's
+ * - the same one the PDF is drawn from - so the preview cannot disagree with
+ * the download.
+ */
+const LetterheadPreview = ({ rfqId, format }: { rfqId: RfqId; format: QuotationFormat }) => {
+  const preview = useQuotationPreview(rfqId, format);
+  if (preview.isPending) {
+    return <p className="m-0 px-7 py-6 text-[13px] text-ink3">Preparing the preview…</p>;
+  }
+  if (preview.isError) {
+    return (
+      <p role="alert" className="m-0 px-7 py-6 text-[13px] text-bad">
+        Could not load the preview — try again
+      </p>
+    );
+  }
+  return <QuotationSheet preview={preview.data} />;
+};
+
+/** The customer's own file, previewed as the table it is filled from. */
 const Document = ({
   format,
   reference,

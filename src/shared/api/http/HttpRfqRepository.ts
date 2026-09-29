@@ -1,7 +1,7 @@
 import { httpBlob, httpClient } from '@/shared/api/httpClient';
 import type { DraftApproval, DraftInquiry, RfqRepository } from '@/entities/rfq/api/rfqRepository';
 import type { QuotationFormat } from '@/entities/rfq/lib/quotation';
-import type { RfqDetail, RfqId } from '@/entities/rfq/model/types';
+import type { QuotationPreview, RfqDetail, RfqId } from '@/entities/rfq/model/types';
 
 /** What the backend calls each office's letterhead, for the PDF and the workbook. */
 const LETTERHEAD: Partial<Record<QuotationFormat, string>> = {
@@ -59,6 +59,15 @@ export class HttpRfqRepository implements RfqRepository {
       // Rendering a long RFQ takes the server longer than reading one.
       timeoutMs: 60_000,
     });
+  }
+
+  quotationPreview(id: RfqId, format: QuotationFormat): Promise<QuotationPreview> {
+    const letterhead = LETTERHEAD[format];
+    if (letterhead === undefined) return Promise.reject(new Error(`${format} has no letterhead`));
+    const query = new URLSearchParams({ format: letterhead });
+    return httpClient<QuotationPreview>(
+      `/quotes/${encodeURIComponent(id)}/rfq/quotation?${query.toString()}`,
+    );
   }
 
   quoteWorkbook(id: RfqId, format: QuotationFormat): Promise<Blob> {

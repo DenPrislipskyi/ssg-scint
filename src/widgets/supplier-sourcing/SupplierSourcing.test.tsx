@@ -41,11 +41,12 @@ const row = (line: number, over: Partial<SourcingRow> | number | null = null): S
 const listening = (): { repositories: Repositories; asked: number[] } => {
   const repositories = createMockRepositories();
   const asked: number[] = [];
-  const price = repositories.rfqs.price.bind(repositories.rfqs);
 
-  repositories.rfqs.price = async (id, index, unitPrice) => {
+  // Only records which lines were priced. These tests hand the widget their
+  // letters as props, so the mock's own store has none, and passing the call
+  // on would be refused - a price for a line it never saw asked about.
+  repositories.rfqs.price = async (_id, index) => {
     asked.push(index);
-    return price(id, index, unitPrice);
   };
   return { repositories, asked };
 };
@@ -93,10 +94,28 @@ const render = (rows: SourcingRow[], repositories?: Repositories, inquiries: Sen
   );
 
 describe('SupplierSourcing', () => {
+  it('counts the JIT lines without an offers counter nothing moves', () => {
+    render([row(2, null), row(3, null)]);
+
+    expect(screen.getByText(/2 JIT lines · In-Stock lines skip sourcing/)).toBeInTheDocument();
+    expect(screen.queryByText(/offer\(s\) selected/)).not.toBeInTheDocument();
+  });
+
+  it('shows the supplier offers without a Validation column', () => {
+    render([row(2, null)]);
+
+    const offers = screen.getByText('Product / specification').closest('table')!;
+    expect(within(offers).queryByText('Validation')).not.toBeInTheDocument();
+    const [first] = within(offers.querySelector('tbody')!).getAllByRole('row');
+    expect(within(first!).getAllByRole('cell')).toHaveLength(
+      offers.querySelectorAll('thead th').length,
+    );
+  });
+
   it('asks every line when nobody has answered', async () => {
     const user = userEvent.setup();
     const { repositories, asked } = listening();
-    render([row(2, null), row(3, null)], repositories);
+    render([row(2, null), row(3, null)], repositories, [sentTo(NORTHGATE, 2, 3)]);
 
     await user.click(screen.getByRole('button', { name: SAMPLE }));
 
@@ -108,7 +127,7 @@ describe('SupplierSourcing', () => {
     // перезапит — не чіпати число, яке вже хтось прочитав.
     const user = userEvent.setup();
     const { repositories, asked } = listening();
-    render([row(2, 24.5), row(3, null)], repositories);
+    render([row(2, 24.5), row(3, null)], repositories, [sentTo(NORTHGATE, 2, 3)]);
 
     const load = screen.getByRole('button', { name: SAMPLE });
     expect(load).toBeEnabled();
@@ -119,10 +138,51 @@ describe('SupplierSourcing', () => {
   });
 
   it('has nobody left to ask once every line carries a price', () => {
-    render([row(2, 24.5), row(3, 4.8)]);
+    render([row(2, 24.5), row(3, 4.8)], undefined, [sentTo(NORTHGATE, 2, 3)]);
 
     expect(screen.getByRole('button', { name: SAMPLE })).toBeDisabled();
+    expect(tooltipOf(SAMPLE)).toHaveTextContent(
+      'Every line asked about already carries a supplier price',
+    );
     expect(screen.getByText('$4.8')).toBeInTheDocument();
+  });
+
+  it('waits for the inquiries before a supplier can answer', () => {
+    // Nobody was written to yet, so there is nobody to hear back from.
+    render([row(2, null), row(3, null)]);
+
+    expect(screen.getByRole('button', { name: SAMPLE })).toBeDisabled();
+    expect(tooltipOf(SAMPLE)).toHaveTextContent('Send the web inquiries to the suppliers first');
+  });
+
+  it('asks only the lines a letter went out for', async () => {
+    const user = userEvent.setup();
+    const { repositories, asked } = listening();
+    render([row(2, null), row(3, null)], repositories, [sentTo(NORTHGATE, 3)]);
+
+    await user.click(screen.getByRole('button', { name: SAMPLE }));
+
+    await waitFor(() => expect(asked).toEqual([3]));
+  });
+
+  it('says nothing about a line nobody was written to', () => {
+    render([row(2, null)]);
+
+    const [line] = within(
+      screen.getByText('Inquiry status').closest('table')!.querySelector('tbody')!,
+    ).getAllByRole('row');
+    expect(within(line!).getAllByRole('cell').at(-1)).toHaveTextContent(/^$/);
+  });
+
+  it('says Sent once a letter went out, and Received once the price is in', () => {
+    render([row(2, null), row(3, 4.8)], undefined, [sentTo(NORTHGATE, 2, 3)]);
+
+    const status = within(
+      screen.getByText('Inquiry status').closest('table')!.querySelector('tbody')!,
+    )
+      .getAllByRole('row')
+      .map((one) => within(one).getAllByRole('cell').at(-1)!.textContent);
+    expect(status).toEqual(['Sent', 'Received']);
   });
 
   it('has nobody to ask at all when no line is JIT', () => {

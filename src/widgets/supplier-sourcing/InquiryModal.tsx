@@ -42,8 +42,9 @@ export interface InquiryModalProps {
  * Списку позицій тут немає: позиція сама по собі нікому не адресована, а
  * адресат один на всі свої позиції, і лист у нього теж один.
  *
- * Нічого не надсилає. «Send Web Inquiry» і «Cancel» роблять те саме — те, що
- * єдине тут чесно можна зробити: закривають вікно.
+ * Sends nothing by mail - the sheet holds no supplier addresses. `Send Web
+ * Inquiry` records every letter as it stands, once for the RFQ; `Cancel` only
+ * closes the window.
  */
 export const InquiryModal = ({
   groups,

@@ -11,6 +11,9 @@ const SLOW = { timeout: 3000 };
 /** Підказка на закритому другому етапі — те, що бачать при наведенні. */
 const SHUT = 'Confirm a product for every line before sourcing suppliers';
 
+/** Підказка на третьому й четвертому етапах, поки закритий другий. */
+const LATER = 'Finalize previous step before proceeding';
+
 /**
  * Довести до товару всі три позиції.
  *
@@ -76,21 +79,24 @@ describe('RfqDetailPage', () => {
     expect(window.location.pathname).not.toBe('/rfqs/sample');
   });
 
-  it('shows the five RFQ header fields', async () => {
+  it('shows the four RFQ header fields', async () => {
     render();
     await screen.findByRole('heading', { level: 1 });
 
-    for (const label of [
-      'RFQ reference',
-      'Customer',
-      'Vessel',
-      'Customer RFQ reference',
-      'RFQ lines',
-    ]) {
+    for (const label of ['RFQ reference', 'Customer', 'Vessel', 'RFQ lines']) {
       expect(screen.getByText(label)).toBeInTheDocument();
     }
+    expect(screen.queryByText('Customer RFQ reference')).not.toBeInTheDocument();
     expect(screen.getByText('purchasing@almi.example.com')).toBeInTheDocument();
     expect(screen.getByText('MV ALMI GLOBE · IMO 9417751')).toBeInTheDocument();
+  });
+
+  it('counts the RFQ lines as the Product Matching table does', async () => {
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    // The sample RFQ has three lines, and the header says so.
+    expect(screen.getByText('RFQ lines').nextElementSibling).toHaveTextContent('3');
   });
 
   it('marks only the first POC stage as current', async () => {
@@ -580,6 +586,15 @@ describe('RfqDetailPage', () => {
     // Підказка своя, а не `title`: нативну браузер тримає близько секунди, і
     // над вимкненим елементом узагалі не показує.
     expect(within(sourcing).getByRole('tooltip')).toHaveTextContent(SHUT);
+  });
+
+  it('points Pricing and RFQ Finalisation back to the previous step', async () => {
+    render();
+    await screen.findByRole('heading', { level: 1 });
+
+    const [, , pricing, finalisation] = screen.getAllByRole('listitem');
+    expect(within(pricing!).getByRole('tooltip')).toHaveTextContent(LATER);
+    expect(within(finalisation!).getByRole('tooltip')).toHaveTextContent(LATER);
   });
 
   it('counts down the lines left to confirm', async () => {

@@ -1,5 +1,5 @@
 import type { QuotationFormat } from '@/entities/rfq/lib/quotation';
-import type { RfqDetail, RfqId } from '@/entities/rfq/model/types';
+import type { QuotationPreview, RfqDetail, RfqId } from '@/entities/rfq/model/types';
 
 /** Лист одному постачальнику — так, як його складає екран, ще без часу. */
 export interface DraftInquiry {
@@ -54,6 +54,11 @@ export interface RfqRepository {
    * the customer, and before approval there is no such number yet.
    */
   quotationPdf(id: RfqId, format: QuotationFormat): Promise<Blob>;
+  /**
+   * What that PDF prints, as data for the screen to draw - the same layout
+   * the PDF is drawn from, so the preview cannot disagree with the download.
+   */
+  quotationPreview(id: RfqId, format: QuotationFormat): Promise<QuotationPreview>;
   /**
    * The quotation in the customer's own spreadsheet layout. The same rule as
    * the PDF: nothing to download before approval.

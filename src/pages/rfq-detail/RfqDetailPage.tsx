@@ -31,6 +31,12 @@ const EMPTY = <span className="text-ink4">—</span>;
  */
 const BLOCKED = 'Confirm a product for every line before sourcing suppliers';
 
+/**
+ * Чому закриті третій і четвертий етапи, поки не відкрито другий. Причина та
+ * сама, але її вже назвав другий етап — тут досить сказати, що спершу він.
+ */
+const BLOCKED_LATER = 'Finalize previous step before proceeding';
+
 /** Поле шапки RFQ: підпис зверху, значення під ним. */
 const Field = ({ label, value }: { label: string; value: string }) => (
   <div className="flex flex-col gap-0.5 text-[13px]">
@@ -110,7 +116,7 @@ export const RfqDetailPage = ({ stage = RFQ_STAGE.matching }: RfqDetailPageProps
         }
       : {
           hint: `${left} line${pluralSuffix(left)} still to confirm`,
-          blocked: BLOCKED,
+          blocked: BLOCKED_LATER,
         },
     // Відмикається підписом, а не підтвердженням позицій: цей екран показує
     // затверджені числа, і відкритий до підпису він показував би те, що ще
@@ -130,7 +136,7 @@ export const RfqDetailPage = ({ stage = RFQ_STAGE.matching }: RfqDetailPageProps
           }
       : {
           hint: `${left} line${pluralSuffix(left)} still to confirm`,
-          blocked: BLOCKED,
+          blocked: BLOCKED_LATER,
         },
   };
 
@@ -156,8 +162,8 @@ export const RfqDetailPage = ({ stage = RFQ_STAGE.matching }: RfqDetailPageProps
         <Field label="RFQ reference" value={reference} />
         <Field label="Customer" value={rfq.customerName} />
         <Field label="Vessel" value={vessel} />
-        <Field label="Customer RFQ reference" value="" />
-        <Field label="RFQ lines" value="" />
+        {/* The same count the Product Matching table shows. */}
+        <Field label="RFQ lines" value={String(total)} />
       </div>
 
       <RfqStages current={stage} stages={stages} />

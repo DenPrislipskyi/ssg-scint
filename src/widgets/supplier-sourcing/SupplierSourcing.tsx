@@ -3,7 +3,14 @@ import { useState } from 'react';
 import { useRecordOffers } from '@/entities/rfq/hooks/useRecordOffers';
 import { useSendInquiries } from '@/entities/rfq/hooks/useSendInquiries';
 import { inquiryGroups } from '@/entities/rfq/lib/inquiry';
-import { alreadySent, hasAnyReply, supplierThreads } from '@/entities/rfq/lib/responses';
+import {
+  alreadySent,
+  hasAnyReply,
+  inquiryStatus,
+  supplierThreads,
+  wasAsked,
+  type InquiryStatus,
+} from '@/entities/rfq/lib/responses';
 import type { SourcingRow } from '@/entities/rfq/lib/sourcing';
 import type { RfqId, SentInquiry } from '@/entities/rfq/model/types';
 import { pluralSuffix } from '@/shared/lib/format';
@@ -47,12 +54,15 @@ const samplePrice = (): number =>
 
 const money = (value: number): string => `$${value.toFixed(1)}`;
 
-const LOADED = 'Every line already carries a supplier price';
+const LOADED = 'Every line asked about already carries a supplier price';
+// A supplier answers a letter: until the inquiries go out there is nobody to
+// hear back from.
+const SEND_FIRST = 'Send the web inquiries to the suppliers first';
 const LOADING = 'Recording the prices…';
 const NOTHING_TO_QUOTE = 'No JIT line to quote';
 
 const SOURCING_COLUMNS = 7;
-const OFFER_COLUMNS = 8;
+const OFFER_COLUMNS = 7;
 
 export interface SupplierSourcingProps {
   rfqId: RfqId;
@@ -114,8 +124,7 @@ export const SupplierSourcing = ({
       <div className="flex flex-wrap items-center gap-2.5 border-b border-line2 px-4 py-3">
         <b className="text-sm font-semibold">Supplier sourcing · JIT products</b>
         <span className="text-[13px] text-ink3">
-          {rows.length} JIT line{pluralSuffix(rows.length)} · 0 offer(s) selected · In-Stock lines
-          skip sourcing
+          {rows.length} JIT line{pluralSuffix(rows.length)} · In-Stock lines skip sourcing
         </span>
         <span className="ml-auto" />
         <Button
@@ -182,16 +191,16 @@ export const SupplierSourcing = ({
                 <td className={cn(TD, 'text-right')}>{row.quantity || EMPTY}</td>
                 <td className={TD}>{row.uom || EMPTY}</td>
                 <td className={cn(TD, 'max-w-[230px]')}>{row.supplier || EMPTY}</td>
-                {/* Порожня, поки нікуди не написано: статус запиту, якого ніхто
-                  не надсилав, — це не статус. */}
-                <td className="border-b border-line2 px-3 py-[9px] align-top" />
+                <td className="border-b border-line2 px-3 py-[9px] align-top">
+                  <Status value={inquiryStatus(row, inquiries)} />
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
 
-      <SupplierOffers rfqId={rfqId} rows={rows} />
+      <SupplierOffers rfqId={rfqId} rows={rows} inquiries={inquiries} />
 
       {/* Монтується лише відкритим: вибраний постачальник і правки в листі —
           це стан однієї спроби, і наступного разу він має починатися чистим. */}
@@ -226,7 +235,15 @@ export const SupplierSourcing = ({
  * Другого разу кнопка не працює, бо ціни вже є: перепитувати постачальника,
  * який відповів, означало б стерти число, яке вже хтось прочитав.
  */
-const SupplierOffers = ({ rfqId, rows }: { rfqId: RfqId; rows: SourcingRow[] }) => {
+const SupplierOffers = ({
+  rfqId,
+  rows,
+  inquiries,
+}: {
+  rfqId: RfqId;
+  rows: SourcingRow[];
+  inquiries: SentInquiry[];
+}) => {
   const offers = useRecordOffers(rfqId);
   // Ціни читаються із запису, а не з пам'яті сторінки: відповідь постачальника
   // переживає перезавантаження, і питати про неї двічі не можна.
@@ -235,16 +252,21 @@ const SupplierOffers = ({ rfqId, rows }: { rfqId: RfqId; rows: SourcingRow[] }) 
   // робить» — коли відповіли всі, питати нема кого, — і водночас єдиний
   // спосіб дописати решту, якщо половина записів не дійшла: перезапит не
   // чіпає числа, які вже хтось прочитав.
-  const silent = rows.filter((row) => row.unitPrice === null);
+  //
+  // And only those somebody wrote to: a line no letter went out for has no
+  // supplier who could be answering.
+  const silent = rows.filter((row) => row.unitPrice === null && wasAsked(row, inquiries));
 
   const reason =
     rows.length === 0
       ? NOTHING_TO_QUOTE
-      : silent.length === 0
-        ? LOADED
-        : offers.isPending
-          ? LOADING
-          : undefined;
+      : !alreadySent(inquiries)
+        ? SEND_FIRST
+        : silent.length === 0
+          ? LOADED
+          : offers.isPending
+            ? LOADING
+            : undefined;
 
   return (
     <div className="border-t border-line bg-[#FAFAFB] px-4 py-3.5">
@@ -290,9 +312,6 @@ const SupplierOffers = ({ rfqId, rows }: { rfqId: RfqId; rows: SourcingRow[] }) 
               <th scope="col" className={cn(TH, TH_SEP, '!text-right whitespace-nowrap')}>
                 Supplier unit price
               </th>
-              <th scope="col" className={cn(TH, TH_SEP)}>
-                Validation
-              </th>
               <th scope="col" className={TH} />
             </tr>
           </thead>
@@ -318,10 +337,6 @@ const SupplierOffers = ({ rfqId, rows }: { rfqId: RfqId; rows: SourcingRow[] }) 
                 <td className={cn(TD, 'text-right font-medium')}>
                   {row.unitPrice === null ? EMPTY : money(row.unitPrice)}
                 </td>
-                {/* Порожні, поки перевіряти нема чого й вибирати нема з чого:
-                    одна відповідь на позицію — це не вибір, а вердикт про неї
-                    ніхто не виносив. */}
-                <td className={TD} />
                 <td className="border-b border-line2 px-3 py-[9px] align-top" />
               </tr>
             ))}
@@ -331,3 +346,21 @@ const SupplierOffers = ({ rfqId, rows }: { rfqId: RfqId; rows: SourcingRow[] }) 
     </div>
   );
 };
+
+const STATUS_TONE: Record<Exclude<InquiryStatus, ''>, string> = {
+  Sent: 'bg-sup-soft text-sup',
+  Received: 'bg-ok-soft text-ok',
+};
+
+/** A line's inquiry status as a small pill; nothing at all before it is sent. */
+const Status = ({ value }: { value: InquiryStatus }) =>
+  value === '' ? null : (
+    <span
+      className={cn(
+        'inline-block rounded-full px-2 py-0.5 text-[12px] font-medium',
+        STATUS_TONE[value],
+      )}
+    >
+      {value}
+    </span>
+  );

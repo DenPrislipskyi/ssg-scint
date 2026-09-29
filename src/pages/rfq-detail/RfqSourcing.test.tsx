@@ -10,8 +10,20 @@ import { renderWithProviders } from '@/test/renderWithProviders';
 const SLOW = { timeout: 3000 };
 
 const SAMPLE = 'Load sample supplier response';
+const INQUIRE = 'Send Web Inquiry';
 /** Місце колонки з ціною серед восьми колонок таблиці пропозицій. */
 const PRICE = 5;
+
+/**
+ * Send the web inquiries as a person does: open the letters, send them. A
+ * supplier can only answer once they have gone out.
+ */
+const sendInquiries = async (user: ReturnType<typeof userEvent.setup>) => {
+  await user.click(screen.getByRole('button', { name: INQUIRE }));
+  const dialog = await screen.findByRole('dialog');
+  await user.click(within(dialog).getByRole('button', { name: INQUIRE }));
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+};
 
 /** Рядки нижньої таблиці — тієї, що про відповіді постачальників. */
 const offerRows = () =>
@@ -118,7 +130,7 @@ describe('Supplier Sourcing', () => {
     await user.click(within(screen.getAllByRole('listitem')[1]!).getByRole('link'));
 
     expect(
-      await screen.findByText(/2 JIT lines · 0 offer\(s\) selected · In-Stock lines skip sourcing/),
+      await screen.findByText(/2 JIT lines · In-Stock lines skip sourcing/),
     ).toBeInTheDocument();
   });
 
@@ -139,7 +151,6 @@ describe('Supplier Sourcing', () => {
       'pcs',
       '12',
       '—',
-      '',
       '',
     ]);
     expect(cellsOf(rows[1]!).slice(0, 5)).toEqual([
@@ -164,6 +175,7 @@ describe('Supplier Sourcing', () => {
     await user.click(within(screen.getAllByRole('listitem')[1]!).getByRole('link'));
     await screen.findByText('Supplier offers');
 
+    await sendInquiries(user);
     await user.click(screen.getByRole('button', { name: SAMPLE }));
 
     // Вигадані числа, тож перевіряємо форму: долар і одна цифра після коми.
@@ -181,6 +193,7 @@ describe('Supplier Sourcing', () => {
     const user = await settleEverything();
     await user.click(within(screen.getAllByRole('listitem')[1]!).getByRole('link'));
     await screen.findByText('Supplier offers');
+    await sendInquiries(user);
     await user.click(screen.getByRole('button', { name: SAMPLE }));
     await waitFor(() => expect(cellsOf(offerRows()[0]!)[PRICE]).not.toBe('—'));
     const quoted = offerRows().map((row) => cellsOf(row)[PRICE]);
@@ -194,12 +207,38 @@ describe('Supplier Sourcing', () => {
     expect(offerRows().map((row) => cellsOf(row)[PRICE])).toEqual(quoted);
   });
 
+  it('goes from nothing, to Sent, to Received as the suppliers are written to and answer', async () => {
+    const user = await settleEverything();
+    await user.click(within(screen.getAllByRole('listitem')[1]!).getByRole('link'));
+    await screen.findByText('Supplier offers');
+    const load = () => screen.getByRole('button', { name: SAMPLE });
+    const statuses = () =>
+      within(screen.getByText('Inquiry status').closest('table')!.querySelector('tbody')!)
+        .getAllByRole('row')
+        .map((row) => within(row).getAllByRole('cell').at(-1)!.textContent);
+
+    // Nobody written to yet: no status, and nobody to hear back from.
+    expect(statuses()).toEqual(['', '']);
+    expect(load()).toBeDisabled();
+    expect(within(load().parentElement!).getByRole('tooltip')).toHaveTextContent(
+      'Send the web inquiries to the suppliers first',
+    );
+
+    await sendInquiries(user);
+    await waitFor(() => expect(statuses()).toEqual(['Sent', 'Sent']));
+    expect(load()).toBeEnabled();
+
+    await user.click(load());
+    await waitFor(() => expect(statuses()).toEqual(['Received', 'Received']));
+  });
+
   it('keeps the loaded prices put when the button is pressed again', async () => {
     // Друге натискання перемішало б числа, які хтось уже прочитав.
     const user = await settleEverything();
     await user.click(within(screen.getAllByRole('listitem')[1]!).getByRole('link'));
     await screen.findByText('Supplier offers');
 
+    await sendInquiries(user);
     const load = () => screen.getByRole('button', { name: SAMPLE });
     await user.click(load());
     await waitFor(() => expect(cellsOf(offerRows()[0]!)[PRICE]).not.toBe('—'));
@@ -235,6 +274,7 @@ describe('What the suppliers answered, back on Product Matching', () => {
     await user.click(within(screen.getAllByRole('listitem')[1]!).getByRole('link'));
     await screen.findByText('Supplier offers');
 
+    await sendInquiries(user);
     await user.click(screen.getByRole('button', { name: SAMPLE }));
     await waitFor(() => expect(cellsOf(offerRows()[0]!)[PRICE]).not.toBe('—'));
 
@@ -358,6 +398,7 @@ describe('Pricing', () => {
     const user = await settleEverything();
     await user.click(within(screen.getAllByRole('listitem')[1]!).getByRole('link'));
     await screen.findByText('Supplier offers');
+    await sendInquiries(user);
     await user.click(screen.getByRole('button', { name: SAMPLE }));
     await waitFor(() => expect(cellsOf(offerRows()[0]!)[PRICE]).not.toBe('—'));
     await user.click(within(screen.getAllByRole('listitem')[2]!).getByRole('link'));
@@ -415,6 +456,7 @@ describe('RFQ Finalisation', () => {
     await user.click(within(screen.getAllByRole('listitem')[1]!).getByRole('link'));
     await screen.findByText('Supplier offers');
 
+    await sendInquiries(user);
     await user.click(screen.getByRole('button', { name: SAMPLE }));
     await waitFor(() => expect(cellsOf(offerRows()[0]!)[PRICE]).not.toBe('—'));
 
@@ -507,10 +549,13 @@ describe('RFQ Finalisation', () => {
 
       await user.click(sg());
 
+      // Drawn as the PDF prints it: the office's letterhead, the banner and
+      // the grey panels, not the table the fourth stage shows.
       expect(sg()).toHaveAttribute('aria-pressed', 'true');
-      expect(screen.getByRole('heading', { name: 'Quotation · SG standard' })).toBeVisible();
-      expect(screen.getByText('Seven Seas Group · Singapore')).toBeVisible();
-      expect(screen.getByText(/^Prices in USD/)).toBeVisible();
+      expect(await screen.findByRole('heading', { name: /^Quotation For / })).toBeVisible();
+      expect(screen.getByText('Seven Seas Maritime Services (Singapore) Pte. Ltd')).toBeVisible();
+      expect(screen.getByText('Customer Address')).toBeVisible();
+      expect(screen.getByText('Supplier Terms and Condition')).toBeVisible();
     });
 
     it('quotes every line, at the same total as the table above', async () => {
@@ -518,19 +563,21 @@ describe('RFQ Finalisation', () => {
       const user = await approveAndOpen();
       await user.click(sg());
 
-      const document = screen.getByText('Total (USD)').closest('table')!;
+      const items = (await screen.findByText('Identification')).closest('table')!;
       const reviewed = screen.getByText('Total quote amount').closest('tr')!.lastChild!.textContent;
+      const quoted = screen.getByText('Total Price(USD)').closest('tr')!.lastChild!.textContent;
 
-      expect(within(document.querySelector('tbody')!).getAllByRole('row')).toHaveLength(3);
-      expect(screen.getByText('Total (USD)').closest('tr')!.lastChild!.textContent).toBe(reviewed);
+      expect(within(items.querySelector('tbody')!).getAllByRole('row')).toHaveLength(3);
+      // The PDF writes `5632.84`, the page `$5,632.84`: one number either way.
+      expect(Number(quoted)).toBe(Number(reviewed!.replace(/[$,]/g, '')));
     });
 
     it('does not carry the Pack column the prototype had', async () => {
       const user = await approveAndOpen();
       await user.click(sg());
 
-      const document = screen.getByText('Total (USD)').closest('table')!;
-      expect(within(document).queryByText('Pack')).not.toBeInTheDocument();
+      const items = (await screen.findByText('Identification')).closest('table')!;
+      expect(within(items).queryByText(/^Pack/)).not.toBeInTheDocument();
     });
 
     it('asks for a format before it offers the PDF', async () => {
@@ -583,8 +630,7 @@ describe('RFQ Finalisation', () => {
 
       expect(uae()).toHaveAttribute('aria-pressed', 'true');
       expect(sg()).toHaveAttribute('aria-pressed', 'false');
-      expect(screen.getByRole('heading', { name: 'Quotation · UAE standard' })).toBeVisible();
-      expect(screen.getByText('Seven Seas Group · Dubai / Fujairah')).toBeVisible();
+      expect(await screen.findByText('Seven Seas Shipchandlers (L.L.C)')).toBeVisible();
     });
 
     it('offers the UAE form as both files', async () => {

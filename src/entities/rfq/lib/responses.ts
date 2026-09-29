@@ -95,6 +95,22 @@ const earliest = (moments: (string | null)[]): string | null => {
 export const hasAnyReply = (rows: SourcingRow[]): boolean =>
   rows.some((row) => row.unitPrice !== null);
 
+/** Whether a letter went out about this line - a supplier can only answer one. */
+export const wasAsked = (row: SourcingRow, inquiries: SentInquiry[]): boolean =>
+  inquiries.some((one) => one.lines.includes(row.index));
+
+/**
+ * Where a line's inquiry stands: `Received` once a supplier's price is on it,
+ * `Sent` once a letter went out about it, and nothing before either - the
+ * status of an inquiry nobody sent is not a status.
+ */
+export type InquiryStatus = 'Sent' | 'Received' | '';
+
+export const inquiryStatus = (row: SourcingRow, inquiries: SentInquiry[]): InquiryStatus => {
+  if (row.unitPrice !== null) return 'Received';
+  return wasAsked(row, inquiries) ? 'Sent' : '';
+};
+
 /** Чи листи вже пішли. Вони йдуть один раз, і це — та сама перевірка. */
 export const alreadySent = (inquiries: SentInquiry[]): boolean => inquiries.length > 0;
 
