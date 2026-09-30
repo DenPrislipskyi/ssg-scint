@@ -5,6 +5,7 @@ import {
   asKey,
   asManualChoice,
   byConfidence,
+  inOrder,
   customerCodeOf,
   sourceOf,
   toTableRows,
@@ -279,5 +280,28 @@ describe('byConfidence', () => {
     byConfidence(rows, 'desc');
 
     expect(marksOf(rows)).toEqual([40, 98]);
+  });
+});
+
+describe('inOrder', () => {
+  const rows = toTableRows([1, 2, 3].map((n) => line({ line: n, index: n, confidence: n * 10 })));
+  const linesOf = (shown: typeof rows) => shown.map((row) => row.line);
+
+  it('keeps the order it was given, whatever the scores are now', () => {
+    const remembered = [rows[2]!.key, rows[0]!.key, rows[1]!.key];
+    // Підтвердження міняє оцінку; порядок від цього не зсувається.
+    const changed = rows.map((row) => ({ ...row, confidence: null }));
+
+    expect(linesOf(inOrder(changed, remembered))).toEqual([3, 1, 2]);
+  });
+
+  it('puts a line it does not know last, in the order it came', () => {
+    expect(linesOf(inOrder(rows, [rows[1]!.key]))).toEqual([2, 1, 3]);
+  });
+
+  it('does not reorder the rows it was handed', () => {
+    inOrder(rows, [rows[2]!.key]);
+
+    expect(linesOf(rows)).toEqual([1, 2, 3]);
   });
 });

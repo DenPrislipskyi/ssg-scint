@@ -7,6 +7,7 @@ import {
   asChoice,
   asManualChoice,
   byConfidence,
+  inOrder,
   internalUomOf,
   isSettled,
   sourceOf,
@@ -38,12 +39,13 @@ const EMPTY = <span className="text-ink4">—</span>;
  * Дві кнопки, а не одна-перемикач: перемикач треба спершу натиснути, щоб
  * дізнатися, що він зробить, а тут напрямок видно до натискання. Активна
  * стрілка темна — інакше таблиця не каже, як саме вона зараз відсортована.
+ * Обидві світлі — таблиця в порядку RFQ.
  */
 const SortArrows = ({
   sort,
   onSort,
 }: {
-  sort: SortDirection;
+  sort: SortDirection | null;
   onSort: (direction: SortDirection) => void;
 }) => (
   <span className="ml-1.5 inline-flex flex-col align-middle">
@@ -154,18 +156,23 @@ export const ProductMatchingTable = ({ rfqId, lines }: ProductMatchingTableProps
   // що запропонував пошук», а не «нічого»: рядок без вибору показує першого
   // кандидата, бо позиція без товару праворуч — це позиція, яку нічим читати.
   const [chosen, setChosen] = useState<Record<string, ChosenProduct>>({});
-  // Найвпевненіші згори, поки не сказали інакше. Не зберігається між
-  // відкриттями: це спосіб подивитися на таблицю, а не властивість RFQ.
-  const [sort, setSort] = useState<SortDirection>('desc');
+  // Порядок RFQ, поки оператор не натиснув стрілку. Натискання запам'ятовує
+  // порядок на ту мить, і підтвердження рядок уже не зсуває. Не зберігається
+  // між відкриттями: це спосіб подивитися на таблицю, а не властивість RFQ.
+  const [sort, setSort] = useState<{ direction: SortDirection; keys: string[] } | null>(null);
 
-  // Що показувати праворуч: вибір оператора, а без нього — підтверджене, а
-  // без нього — те, що запропонував пошук.
   // Праворуч стоїть вибір оператора, а без нього — те, що прийшло з бекенда:
   // підтверджений товар або пропозиція пошуку.
-  const rows = byConfidence(
-    toTableRows(lines).map((row) => withChoice(row, chosen[row.key])),
-    sort,
-  );
+  const shown = toTableRows(lines).map((row) => withChoice(row, chosen[row.key]));
+  const rows = sort ? inOrder(shown, sort.keys) : shown;
+
+  /** Натиснута стрілка сортує; натиснута вдруге — повертає порядок RFQ. */
+  const sortBy = (direction: SortDirection) =>
+    setSort(
+      sort?.direction === direction
+        ? null
+        : { direction, keys: byConfidence(shown, direction).map((row) => row.key) },
+    );
   // Питаємо про весь RFQ, а не про рядок: ціни приходять однією дією, і
   // складській позиції теж є що сказати — саме те, чому ціни в неї немає.
   const priced = anyPriced(lines);
@@ -267,11 +274,13 @@ export const ProductMatchingTable = ({ rfqId, lines }: ProductMatchingTableProps
               </th>
               <th
                 scope="col"
-                aria-sort={sort === 'desc' ? 'descending' : 'ascending'}
+                aria-sort={
+                  sort === null ? 'none' : sort.direction === 'desc' ? 'descending' : 'ascending'
+                }
                 className={cn(TH, TH_SEP, 'whitespace-nowrap')}
               >
                 AI confidence
-                <SortArrows sort={sort} onSort={setSort} />
+                <SortArrows sort={sort?.direction ?? null} onSort={sortBy} />
               </th>
               <th scope="col" className={cn(TH, TH_SEP, 'w-[110px]')}>
                 Match status

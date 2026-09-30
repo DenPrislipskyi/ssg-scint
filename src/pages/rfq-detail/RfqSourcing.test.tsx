@@ -328,8 +328,30 @@ describe('Sorting Product Matching by what the agent was sure of', () => {
     return user;
   };
 
-  it('opens with the surest match on top', async () => {
+  /** Номери позицій, як вони зараз стоять на екрані, згори вниз. */
+  const linesOnScreen = () =>
+    screen
+      .getAllByRole('row')
+      .map((row) => within(row).queryAllByRole('cell')[0]?.textContent?.trim())
+      .filter((line): line is string => line !== undefined && /^\d+$/.test(line));
+
+  it('opens in the order of the RFQ, sorted by nothing', async () => {
     await openMatching();
+    const header = screen.getByText('AI confidence').closest('th')!;
+
+    expect(header).toHaveAttribute('aria-sort', 'none');
+    expect(screen.getByRole('button', { name: /highest first/ })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    );
+    const lines = linesOnScreen();
+    expect(lines).toEqual([...lines].sort((a, b) => Number(a) - Number(b)));
+  });
+
+  it('puts the surest match on top when the arrow is pressed', async () => {
+    const user = await openMatching();
+
+    await user.click(screen.getByRole('button', { name: /highest first/ }));
 
     const marks = marksOnScreen();
     expect(marks.length).toBeGreaterThan(1);
@@ -346,9 +368,23 @@ describe('Sorting Product Matching by what the agent was sure of', () => {
     expect(marks).toEqual([...marks].sort((a, b) => parseInt(a, 10) - parseInt(b, 10)));
   });
 
+  it('goes back to the order of the RFQ when the pressed arrow is pressed again', async () => {
+    const user = await openMatching();
+    const before = linesOnScreen();
+    const down = screen.getByRole('button', { name: /lowest first/ });
+
+    await user.click(down);
+    await user.click(down);
+
+    expect(linesOnScreen()).toEqual(before);
+    expect(screen.getByText('AI confidence').closest('th')).toHaveAttribute('aria-sort', 'none');
+  });
+
   it('says which way it is sorted, rather than leaving it to be guessed', async () => {
     const user = await openMatching();
     const header = screen.getByText('AI confidence').closest('th')!;
+
+    await user.click(screen.getByRole('button', { name: /highest first/ }));
 
     expect(header).toHaveAttribute('aria-sort', 'descending');
     expect(screen.getByRole('button', { name: /highest first/ })).toHaveAttribute(
@@ -359,6 +395,30 @@ describe('Sorting Product Matching by what the agent was sure of', () => {
     await user.click(screen.getByRole('button', { name: /lowest first/ }));
 
     expect(header).toHaveAttribute('aria-sort', 'ascending');
+  });
+
+  it.each([
+    ['unsorted', null],
+    ['sorted', /highest first/],
+  ])('keeps every line where it is when it is confirmed (%s)', async (_, arrow) => {
+    const user = await openMatching();
+    if (arrow) await user.click(screen.getByRole('button', { name: arrow }));
+    const before = linesOnScreen();
+
+    // Лише ті, що є чим підтвердити: позиція без товару праворуч має кнопку,
+    // але неактивну.
+    const confirmable = () =>
+      screen
+        .queryAllByRole('button', { name: 'Confirm' })
+        .filter((button) => !(button as HTMLButtonElement).disabled);
+    const count = confirmable().length;
+    expect(count).toBeGreaterThan(0);
+
+    for (let left = count; left > 0; left -= 1) {
+      await user.click(confirmable()[0]!);
+      await waitFor(() => expect(confirmable()).toHaveLength(left - 1));
+      expect(linesOnScreen()).toEqual(before);
+    }
   });
 });
 

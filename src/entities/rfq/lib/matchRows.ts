@@ -246,3 +246,17 @@ export const byConfidence = (rows: MatchTableRow[], direction: SortDirection): M
       ? other.confidence - one.confidence
       : one.confidence - other.confidence;
   });
+
+/**
+ * Рядки в порядку, який таблиця запам'ятала в момент сортування.
+ *
+ * Сортування — це дія оператора, а не властивість, яку таблиця підтримує
+ * сама: підтвердження міняє оцінку рядка, і перерахований порядок зсунув би
+ * рядок з-під курсора посеред роботи. Рядок, якого в запам'ятаному порядку
+ * немає, стає в кінець, у своєму порядку.
+ */
+export const inOrder = (rows: MatchTableRow[], keys: string[]): MatchTableRow[] => {
+  const place = new Map(keys.map((key, position) => [key, position]));
+  const at = (row: MatchTableRow) => place.get(row.key) ?? keys.length;
+  return [...rows].sort((one, other) => at(one) - at(other));
+};
