@@ -13,7 +13,32 @@ import { round2 } from '@/shared/lib/format';
 export interface Margins {
   stock: number;
   jit: number;
+  /**
+   * Націнки, які людина поставила окремим позиціям, за номером позиції в
+   * записі. Позиція, якої тут немає, рахується з націнкою свого джерела.
+   *
+   * Окремо від двох загальних, а не замість них: зміна загальної не чіпає
+   * того, що виставили вручну, — інакше одне натискання в шапці мовчки
+   * стерло б рішення, ухвалене про конкретний рядок.
+   */
+  lines?: Readonly<Record<number, number>>;
 }
+
+/** Націнка, з якою рахується позиція: її власна, а без неї — її джерела. */
+export const marginFor = (margins: Margins, index: number, jit: boolean): number =>
+  margins.lines?.[index] ?? (jit ? margins.jit : margins.stock);
+
+/** Ті самі націнки, де в однієї позиції своя. */
+export const withLineMargin = (margins: Margins, index: number, margin: number): Margins => ({
+  ...margins,
+  lines: { ...margins.lines, [index]: margin },
+});
+
+/** Ті самі націнки, де позиція знову рахується з націнкою свого джерела. */
+export const withoutLineMargin = (margins: Margins, index: number): Margins => {
+  const { [index]: _dropped, ...rest } = margins.lines ?? {};
+  return { ...margins, lines: rest };
+};
 
 /** Націнка, яку аркуш назвав для цього джерела. */
 const sheetMargin = (lines: MatchLine[], jit: boolean): number | null => {
@@ -67,6 +92,8 @@ export interface PricingRow {
   cost: number | null;
   /** Націнка, з якою рахується саме цей рядок, у відсотках. */
   margin: number;
+  /** Чи це власна націнка рядка, а не націнка його джерела. */
+  customMargin: boolean;
   /** Ціна продажу за одиницю, округлена до копійок. `null` без собівартості. */
   unitPrice: number | null;
   /** Ціна продажу всієї позиції. `null` без собівартості або без кількості. */
@@ -114,7 +141,8 @@ export const pricingRows = (lines: MatchLine[], margins: Margins): PricingRow[] 
     // Складському товару ціну знає аркуш; за JIT її називає постачальник, і
     // поки він мовчить, рахувати нема з чого.
     const cost = jit ? line.offerUnitPrice : costOf(line.item);
-    const margin = jit ? margins.jit : margins.stock;
+    const customMargin = margins.lines?.[line.index] !== undefined;
+    const margin = marginFor(margins, line.index, jit);
     const quantity = quantityOf(line);
     // Затверджена ціна має перевагу над порахованою. Після підпису
     // собівартість і націнка ще рухаються, а котирування — ні: інакше воно
@@ -134,6 +162,7 @@ export const pricingRows = (lines: MatchLine[], margins: Margins): PricingRow[] 
       uom: line.uom || internalUomOf(line.item),
       cost,
       margin,
+      customMargin,
       unitPrice,
       total: unitPrice === null || quantity === null ? null : lineTotal(unitPrice, quantity),
     };
@@ -194,7 +223,12 @@ export const NOT_APPROVED = 'Approve the pricing first';
 export const whyNotFinalised = (rows: PricingRow[], approved: boolean): string | undefined =>
   approved ? undefined : readyToApprove(rows) ? NOT_APPROVED : APPROVE_BLOCKED;
 
-/** Що саме йде на підпис: дві націнки й ціна на кожну позицію. */
+/**
+ * Що саме йде на підпис: дві націнки й ціна на кожну позицію.
+ *
+ * Власні націнки рядків окремо не йдуть: вони вже в ціні позиції, а ціна — це
+ * те, що підписують.
+ */
 export const toApproval = (
   rows: PricingRow[],
   margins: Margins,
@@ -214,4 +248,10 @@ export const toApproval = (
  * її не давала.
  */
 export const shownMargins = (approval: Approval | null, edited: Margins): Margins =>
-  approval ? { stock: approval.marginStock, jit: approval.marginJit } : edited;
+  approval
+    ? {
+        stock: approval.marginStock,
+        jit: approval.marginJit,
+        ...(edited.lines ? { lines: edited.lines } : {}),
+      }
+    : edited;

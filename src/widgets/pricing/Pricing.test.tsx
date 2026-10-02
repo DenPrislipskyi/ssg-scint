@@ -110,7 +110,8 @@ describe('Pricing', () => {
 
     const cells = cellsOf(1);
     expect(cells[COST]).toBe('$25.00');
-    expect(cells[MARGIN]).toContain('12 %');
+    expect(screen.getByLabelText('Margin % for line 1')).toHaveValue(12);
+    expect(cells[MARGIN]).toContain('In-Stock margin');
     expect(cells[UNIT]).toBe('$28.00');
     expect(cells[TOTAL]).toBe('$280.00');
   });
@@ -152,6 +153,47 @@ describe('Pricing', () => {
 
     expect(cellsOf(1)[UNIT]).toBe('$28.00');
     expect(cellsOf(2)[UNIT]).toBe('$15.00');
+  });
+
+  it('reprices only the line whose own margin changes', async () => {
+    const user = userEvent.setup();
+    render(<Screen lines={[line(), line({ index: 2, line: 2 })]} />);
+
+    await user.clear(screen.getByLabelText('Margin % for line 2'));
+    await user.type(screen.getByLabelText('Margin % for line 2'), '50');
+
+    expect(cellsOf(1)[UNIT]).toBe('$28.00');
+    expect(cellsOf(2)[UNIT]).toBe('$37.50');
+    expect(cellsOf(2)[TOTAL]).toBe('$375.00');
+    expect(cellsOf(2)[MARGIN]).toContain('Line margin');
+    expect(screen.getByLabelText('In-Stock margin %')).toHaveValue(12);
+    expect(screen.getByText('Total quote amount').closest('tr')).toHaveTextContent('$655.00');
+  });
+
+  it('keeps a line margin when the margin of its source changes', async () => {
+    const user = userEvent.setup();
+    render(<Screen lines={[line(), line({ index: 2, line: 2 })]} />);
+
+    await user.clear(screen.getByLabelText('Margin % for line 2'));
+    await user.type(screen.getByLabelText('Margin % for line 2'), '50');
+    await user.clear(screen.getByLabelText('In-Stock margin %'));
+    await user.type(screen.getByLabelText('In-Stock margin %'), '20');
+
+    expect(cellsOf(1)[UNIT]).toBe('$30.00');
+    expect(cellsOf(2)[UNIT]).toBe('$37.50');
+  });
+
+  it('puts a line back on the margin of its source when reset', async () => {
+    const user = userEvent.setup();
+    render(<Screen lines={[line()]} />);
+
+    await user.clear(screen.getByLabelText('Margin % for line 1'));
+    await user.type(screen.getByLabelText('Margin % for line 1'), '50');
+    await user.click(screen.getByRole('button', { name: 'Reset margin for line 1' }));
+
+    expect(screen.getByLabelText('Margin % for line 1')).toHaveValue(12);
+    expect(cellsOf(1)[UNIT]).toBe('$28.00');
+    expect(cellsOf(1)[MARGIN]).toContain('In-Stock margin');
   });
 
   it('adds up only what is priced, and says how much of the RFQ that is', () => {
@@ -233,9 +275,29 @@ describe('Approving the pricing', () => {
     expect(signed[0]).toMatchObject({ marginStock: 50, lines: [{ index: 1, unitPrice: 37.5 }] });
   });
 
+  it('signs the price a line margin gave, and only for that line', async () => {
+    const user = userEvent.setup();
+    const { repositories, signed } = listening();
+    render(<Screen lines={[line(), line({ index: 2, line: 2 })]} />, repositories);
+
+    await user.clear(screen.getByLabelText('Margin % for line 2'));
+    await user.type(screen.getByLabelText('Margin % for line 2'), '50');
+    await user.click(approveButton());
+
+    await waitFor(() => expect(signed).toHaveLength(1));
+    expect(signed[0]).toMatchObject({
+      marginStock: 12,
+      lines: [
+        { index: 1, unitPrice: 28 },
+        { index: 2, unitPrice: 37.5 },
+      ],
+    });
+  });
+
   it('locks both margins once it is signed, and says why', () => {
     render(<Screen lines={[line()]} approval={SIGNED} />);
 
+    expect(screen.getByLabelText('Margin % for line 1')).toHaveAttribute('readonly');
     expect(screen.getByLabelText('In-Stock margin %')).toHaveAttribute('readonly');
     expect(screen.getByLabelText('JIT margin %')).toHaveAttribute('readonly');
     // Підказка своя, а не `title`: нативну браузер тримає близько секунди.

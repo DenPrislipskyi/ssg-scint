@@ -8,6 +8,8 @@ import {
   readyToApprove,
   toApproval,
   whyNotFinalised,
+  withLineMargin,
+  withoutLineMargin,
   type Margins,
   type PricingRow,
 } from '@/entities/rfq/lib/pricing';
@@ -62,6 +64,10 @@ export interface PricingProps {
  *
  * Націнка живе, доки відкрита сторінка. Вона не записується: у POC це спосіб
  * подивитися, як зміниться сума, а не рішення, яке хтось ухвалив.
+ *
+ * Дві в шапці — на всі позиції джерела; поле в колонці Margin % — на одну.
+ * Власна націнка рядка переживає зміну загальної: рішення про конкретну
+ * позицію не мусить зникати від натискання, яке було про всі.
  */
 export const Pricing = ({
   rfqId,
@@ -157,7 +163,13 @@ export const Pricing = ({
             )}
 
             {rows.map((row) => (
-              <Row key={row.key} row={row} />
+              <Row
+                key={row.key}
+                row={row}
+                locked={signed}
+                onMargin={(margin) => onMargins(withLineMargin(margins, row.index, margin))}
+                onReset={() => onMargins(withoutLineMargin(margins, row.index))}
+              />
             ))}
           </tbody>
 
@@ -215,7 +227,19 @@ export const Pricing = ({
   );
 };
 
-const Row = ({ row }: { row: PricingRow }) => (
+const Row = ({
+  row,
+  locked,
+  onMargin,
+  onReset,
+}: {
+  row: PricingRow;
+  /** Ціни вже підписані: націнка рядка, як і загальні, більше не змінюється. */
+  locked: boolean;
+  onMargin: (margin: number) => void;
+  /** Повернути рядок до націнки його джерела. */
+  onReset: () => void;
+}) => (
   <tr>
     <td className={cn(TD, 'text-ink3 whitespace-nowrap')}>{row.line}</td>
     <td className={cn(TD, MONO)}>{row.itemCode || EMPTY}</td>
@@ -238,9 +262,40 @@ const Row = ({ row }: { row: PricingRow }) => (
       )}
     </td>
     <td className={cn(TD, 'text-right whitespace-nowrap')}>
-      {row.margin} %
+      <Explained title={locked ? ALREADY_APPROVED : undefined}>
+        <span className="inline-flex items-center gap-1 text-[13px]">
+          <MarginInput
+            label={`Margin % for line ${row.line}`}
+            value={row.margin}
+            locked={locked}
+            onChange={onMargin}
+          />
+          %
+        </span>
+      </Explained>
       <small className="mt-0.5 block text-[11px] text-ink4">
-        {row.jit ? 'JIT margin' : 'In-Stock margin'}
+        {row.customMargin ? (
+          <>
+            Line margin
+            {!locked && (
+              <>
+                {' · '}
+                <button
+                  type="button"
+                  className="cursor-pointer text-ink3 underline hover:text-ink2"
+                  aria-label={`Reset margin for line ${row.line}`}
+                  onClick={onReset}
+                >
+                  reset
+                </button>
+              </>
+            )}
+          </>
+        ) : row.jit ? (
+          'JIT margin'
+        ) : (
+          'In-Stock margin'
+        )}
       </small>
     </td>
     <td className={cn(TD, 'text-right whitespace-nowrap')}>
@@ -269,7 +324,7 @@ const SourceBadge = ({ source, jit }: { source: string; jit: boolean }) =>
 
 /**
  * Націнка одного джерела. Одне поле на всі його рядки, бо аркуш називає для
- * них одне число — колонка на рядок показувала б вибір, якого не роблять.
+ * них одне число; окремому рядку свою ставлять у його ж клітинці Margin %.
  */
 const MarginField = ({
   label,
@@ -291,25 +346,45 @@ const MarginField = ({
   <Explained title={locked ? ALREADY_APPROVED : undefined}>
     <label className="inline-flex items-center gap-2 text-[13px] text-ink2">
       {label}
-      <input
-        type="number"
-        step={MARGIN_STEP}
-        min={0}
-        max={MOST_A_MARGIN_IS}
-        value={value}
-        readOnly={locked}
-        aria-readonly={locked}
-        onChange={(event) => {
-          // Порожнє поле — це людина, що стирає, щоб набрати інше число, а не
-          // націнка, якої немає. До наступного символу тримаємо нуль.
-          const next = Number(event.target.value);
-          onChange(Number.isFinite(next) ? next : 0);
-        }}
-        className={cn(
-          'w-20 rounded-md border border-line px-2 py-1.5 text-right text-[13px]',
-          locked ? 'cursor-default bg-sel text-ink3' : 'bg-white',
-        )}
-      />
+      <MarginInput value={value} locked={locked} onChange={onChange} />
     </label>
   </Explained>
+);
+
+/**
+ * Саме поле націнки — одне й те саме в шапці й у рядку, щоб обидва однаково
+ * поводилися, коли число стирають чи коли ціни вже підписані.
+ */
+const MarginInput = ({
+  label,
+  value,
+  locked,
+  onChange,
+}: {
+  /** Назва для поля без видимого підпису поряд. */
+  label?: string;
+  value: number;
+  locked: boolean;
+  onChange: (value: number) => void;
+}) => (
+  <input
+    type="number"
+    step={MARGIN_STEP}
+    min={0}
+    max={MOST_A_MARGIN_IS}
+    value={value}
+    readOnly={locked}
+    aria-readonly={locked}
+    {...(label ? { 'aria-label': label } : {})}
+    onChange={(event) => {
+      // Порожнє поле — це людина, що стирає, щоб набрати інше число, а не
+      // націнка, якої немає. До наступного символу тримаємо нуль.
+      const next = Number(event.target.value);
+      onChange(Number.isFinite(next) ? next : 0);
+    }}
+    className={cn(
+      'w-20 rounded-md border border-line px-2 py-1.5 text-right text-[13px]',
+      locked ? 'cursor-default bg-sel text-ink3' : 'bg-white',
+    )}
+  />
 );
