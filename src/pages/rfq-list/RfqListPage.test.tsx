@@ -20,7 +20,7 @@ describe('RfqListPage', () => {
     expect(within(row).getByRole('button', { name: 'Open RFQ' })).toBeInTheDocument();
   });
 
-  it('leaves the columns nothing answers empty rather than invented', async () => {
+  it('shows the RFQ reference first', async () => {
     renderWithProviders(<RfqListPage />, { path: '/rfqs', initialEntries: ['/rfqs'] });
 
     const row = (await screen.findByText('Nordic Aurora Shipping')).closest('tr')!;
@@ -28,9 +28,6 @@ describe('RfqListPage', () => {
       .getAllByRole('cell')
       .map((cell) => cell.textContent);
 
-    // Customer RFQ ref is the last column with no source behind it. The RFQ
-    // reference and the line count now have one.
-    expect(cells[3]).toBe('—');
     expect(cells[0]).toBe('E114_26');
   });
 
@@ -43,11 +40,11 @@ describe('RfqListPage', () => {
       .map((cell) => cell.textContent);
 
     // A number, and not a dash: this RFQ was read, and its lines were counted.
-    expect(cells[4]).toMatch(/^\d+$/);
-    expect(cells[4]).not.toBe('0');
+    expect(cells[3]).toMatch(/^\d+$/);
+    expect(cells[3]).not.toBe('0');
   });
 
-  it('renders the six columns of the RFQ list', async () => {
+  it('renders the five columns of the RFQ list', async () => {
     renderWithProviders(<RfqListPage />, { path: '/rfqs', initialEntries: ['/rfqs'] });
     await screen.findByText('Nordic Aurora Shipping');
 
@@ -55,7 +52,6 @@ describe('RfqListPage', () => {
       'RFQ reference',
       'Customer',
       'Vessel',
-      'Customer RFQ ref',
       'Lines',
       '',
     ]);

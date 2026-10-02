@@ -5,8 +5,11 @@ const TH_BASE = 'bg-[#F9FAFB] border-b border-line';
 const TH = `${TH_BASE} px-3.5 py-2.5 text-[13px] font-medium text-ink3`;
 const TD = 'border-b border-line2 px-3.5 py-[11px]';
 
-/** Колонки, під які даних ще немає. Порожньо, а не вигадано. */
+/** Значення, якого ще немає. Порожньо, а не вигадано. */
 const EMPTY = <span className="text-ink4">—</span>;
+
+/** Скільки колонок у таблиці, разом із колонкою кнопки. */
+const COLUMNS = 5;
 
 /** Судно та його IMO одним рядком; IMO може бути ще невідомим агенту. */
 const vesselLabel = (rfq: QuoteListItem): string =>
@@ -38,9 +41,6 @@ export const RfqTable = ({ rows, onOpen, isLoading = false }: RfqTableProps) => 
           <th scope="col" className={`${TH} text-left`}>
             Vessel
           </th>
-          <th scope="col" className={`${TH} text-left`}>
-            Customer RFQ ref
-          </th>
           <th scope="col" className={`${TH} text-right`}>
             Lines
           </th>
@@ -51,7 +51,7 @@ export const RfqTable = ({ rows, onOpen, isLoading = false }: RfqTableProps) => 
       <tbody>
         {isLoading && (
           <tr>
-            <td colSpan={6} className="px-3.5 py-5 text-ink3">
+            <td colSpan={COLUMNS} className="px-3.5 py-5 text-ink3">
               Loading…
             </td>
           </tr>
@@ -59,7 +59,7 @@ export const RfqTable = ({ rows, onOpen, isLoading = false }: RfqTableProps) => 
 
         {!isLoading && rows.length === 0 && (
           <tr>
-            <td colSpan={6} className="px-3.5 py-5 text-ink3">
+            <td colSpan={COLUMNS} className="px-3.5 py-5 text-ink3">
               No RFQs yet
             </td>
           </tr>
@@ -71,7 +71,6 @@ export const RfqTable = ({ rows, onOpen, isLoading = false }: RfqTableProps) => 
               <td className={`${TD} font-mono text-[12.5px]`}>{rfq.reference || EMPTY}</td>
               <td className={`${TD} font-medium`}>{rfq.customerName}</td>
               <td className={`${TD} text-ink2`}>{vesselLabel(rfq) || EMPTY}</td>
-              <td className={`${TD} text-ink2`}>{EMPTY}</td>
               <td className={`${TD} text-right`}>{rfq.lineCount}</td>
               <td className="border-b border-line2 px-3.5 py-[9px] text-right">
                 <Button variant="primary" onClick={() => onOpen(rfq)}>
