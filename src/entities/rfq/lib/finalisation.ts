@@ -15,6 +15,11 @@ export interface FinalRow {
   itemDescription: string;
   quantity: string;
   uom: string;
+  /**
+   * Наша одиниця з аркуша, колонка `UOM` — те саме, що в колонці Internal UOM
+   * на першому етапі. Порожньо, якщо аркуш її не назвав.
+   */
+  internalUom: string;
   /** Затверджена ціна за одиницю. `null` для позиції, що не пройшла підпис. */
   unitPrice: number | null;
   total: number | null;
@@ -53,6 +58,7 @@ export const finalRows = (lines: MatchLine[]): FinalRow[] =>
       quantity: line.quantity,
       // Одиниця клієнта, а без неї — наша, як і на попередніх етапах.
       uom: line.uom || internalUomOf(line.item),
+      internalUom: internalUomOf(line.item),
       unitPrice,
       total: unitPrice === null || quantity === null ? null : lineTotal(unitPrice, quantity),
     };

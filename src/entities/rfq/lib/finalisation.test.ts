@@ -75,6 +75,18 @@ describe('finalRows', () => {
     expect(finalRows([line({ uom: '' })])[0]!.uom).toBe('SET');
   });
 
+  it('shows our unit next to the customer one, as product matching does', () => {
+    const [row] = finalRows([line()]);
+
+    expect(row).toMatchObject({ uom: 'pcs', internalUom: 'SET' });
+  });
+
+  it('leaves the internal unit empty when the sheet names none', () => {
+    const { UOM: _none, ...noUnit } = item('Stock');
+
+    expect(finalRows([line({ item: noUnit })])[0]!.internalUom).toBe('');
+  });
+
   it('keeps every line of the RFQ', () => {
     expect(finalRows([line(), line({ index: 2, line: 2, item: item('JIT') })])).toHaveLength(2);
   });

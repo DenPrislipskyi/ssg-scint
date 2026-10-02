@@ -14,7 +14,7 @@ const MONO = 'font-mono text-[12.5px]';
 
 const SUBTITLE = 'Values below are the confirmed values from stages 1–3';
 
-const COLUMNS = 9;
+const COLUMNS = 10;
 
 export interface FinalisationProps {
   lines: MatchLine[];
@@ -62,6 +62,9 @@ export const Finalisation = ({ lines }: FinalisationProps) => {
               </th>
               <th scope="col" className={cn(TH, TH_SEP)}>
                 UOM
+              </th>
+              <th scope="col" className={cn(TH, TH_SEP, 'whitespace-nowrap')}>
+                Internal UOM
               </th>
               <th scope="col" className={cn(TH, TH_SEP, '!text-right whitespace-nowrap')}>
                 Unit selling price
@@ -116,6 +119,7 @@ const Row = ({ row }: { row: FinalRow }) => (
     <td className={cn(TD, 'max-w-[300px]')}>{row.itemDescription || EMPTY}</td>
     <td className={cn(TD, 'text-right')}>{row.quantity || EMPTY}</td>
     <td className={TD}>{row.uom || EMPTY}</td>
+    <td className={TD}>{row.internalUom || EMPTY}</td>
     <td className={cn(TD, 'text-right whitespace-nowrap')}>
       {row.unitPrice === null ? EMPTY : usd(row.unitPrice)}
     </td>
