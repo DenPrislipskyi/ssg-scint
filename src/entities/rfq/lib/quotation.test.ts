@@ -5,6 +5,8 @@ import {
   PICK_FORMAT,
   quotationDate,
   quotationFileName,
+  quotationFiles,
+  quotationLetter,
   quotationTerms,
   whyNotDownloadable,
 } from '@/entities/rfq/lib/quotation';
@@ -100,6 +102,41 @@ describe('whyNotDownloadable', () => {
     expect(whyNotDownloadable('Customer file (.xlsx)', 'excel')).toBeNull();
     expect(whyNotDownloadable('Customer file (.xlsx)', 'pdf')).toBe(
       'Customer file (.xlsx) is Excel only',
+    );
+  });
+});
+
+describe('quotationFiles', () => {
+  it('attaches both files on our letterheads', () => {
+    expect(quotationFiles('SG standard')).toEqual(['pdf', 'excel']);
+    expect(quotationFiles('UAE standard')).toEqual(['pdf', 'excel']);
+  });
+
+  it("attaches only the customer's own file in their layout", () => {
+    expect(quotationFiles('Customer file (.xlsx)')).toEqual(['excel']);
+  });
+});
+
+describe('quotationLetter', () => {
+  it('greets the address the RFQ came from', () => {
+    expect(quotationLetter('buyer@almi.example.com', 'SG standard')).toMatch(
+      /^Dear buyer@almi\.example\.com,\n\nGood Day\./,
+    );
+  });
+
+  it('falls back to the plain greeting with no address', () => {
+    expect(quotationLetter('', 'SG standard')).toMatch(/^Dear Sir or Madam,/);
+  });
+
+  it('is signed by the office whose letterhead it goes out on', () => {
+    expect(quotationLetter('a@b.c', 'SG standard')).toMatch(
+      /Best regards,\nSeven Seas Maritime Services \(Singapore\) Pte\. Ltd$/,
+    );
+    expect(quotationLetter('a@b.c', 'UAE standard')).toMatch(
+      /Best regards,\nSeven Seas Shipchandlers \(L\.L\.C\)$/,
+    );
+    expect(quotationLetter('a@b.c', 'Customer file (.xlsx)')).toMatch(
+      /Seven Seas Maritime Services \(Singapore\) Pte\. Ltd$/,
     );
   });
 });

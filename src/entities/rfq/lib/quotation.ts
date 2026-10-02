@@ -37,7 +37,16 @@ interface FormatSpec {
    * as `(1)` beside the first.
    */
   excelSuffix: string;
+  /**
+   * Who signs the letter the quotation goes out with: the legal name the
+   * office's letterhead carries. The customer's own file has no letterhead,
+   * and it goes out from Singapore.
+   */
+  signature: string;
 }
+
+const SINGAPORE = 'Seven Seas Maritime Services (Singapore) Pte. Ltd';
+const DUBAI = 'Seven Seas Shipchandlers (L.L.C)';
 
 const FORMATS: Record<QuotationFormat, FormatSpec> = {
   'SG standard': {
@@ -45,6 +54,7 @@ const FORMATS: Record<QuotationFormat, FormatSpec> = {
     description: 'internal',
     files: ['pdf', 'excel'],
     excelSuffix: 'quotation_sg.xlsm',
+    signature: SINGAPORE,
   },
   // The prototype's own wording: the Dubai office quotes for Fujairah too.
   'UAE standard': {
@@ -52,12 +62,14 @@ const FORMATS: Record<QuotationFormat, FormatSpec> = {
     description: 'internal',
     files: ['pdf', 'excel'],
     excelSuffix: 'quotation_uae.xlsm',
+    signature: DUBAI,
   },
   'Customer file (.xlsx)': {
     byline: "Populated into the customer's own file structure",
     description: 'customer',
     files: ['excel'],
     excelSuffix: 'customer_file.xlsx',
+    signature: SINGAPORE,
   },
 };
 
@@ -88,6 +100,33 @@ export const whyNotDownloadable = (
   if (files.includes(file)) return null;
   return `${format} ${ONLY[files[0] ?? file]}`;
 };
+
+/** The files this format comes as - the ones the letter attaches by default. */
+export const quotationFiles = (format: QuotationFormat): readonly QuotationFile[] =>
+  FORMATS[format].files;
+
+/**
+ * The letter the quotation goes out with, before anybody edits it.
+ *
+ * Addressed to the address the RFQ came from: that is all we know of the
+ * customer - the agent reads a mailbox, not a customer registry, and a name
+ * guessed off it would be wrong for exactly the customers whose mail matters
+ * most. With no address it falls back to the plain form.
+ */
+export const quotationLetter = (customer: string, format: QuotationFormat): string =>
+  [
+    `Dear ${customer || 'Sir or Madam'},`,
+    '',
+    'Good Day.',
+    '',
+    'Thank you for placing your inquiry with us.',
+    '',
+    'We are pleased to submit our best offer for your kind perusal. ' +
+      'Kindly check our offer against your requirements.',
+    '',
+    'Best regards,',
+    FORMATS[format].signature,
+  ].join('\n');
 
 /** Whether this format's Excel file is the customer's layout or the desk's workbook. */
 export const isCustomerLayout = (format: QuotationFormat): boolean =>

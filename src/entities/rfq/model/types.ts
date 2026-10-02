@@ -124,6 +124,11 @@ export interface RfqDetail {
   port: string;
   receivedOn: string;
   subject: string;
+  /**
+   * Скринька, на яку прийшов цей RFQ, — з неї ж котирування йде клієнтові
+   * назад. Порожньо для запису, що прийшов не з пошти.
+   */
+  mailbox: string;
   lines: MatchLine[];
   /**
    * Що вже запитали в постачальників. Порожньо, поки ніхто не надсилав — і

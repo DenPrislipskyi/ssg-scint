@@ -18,6 +18,7 @@ import type { MatchLine, RfqId } from '@/entities/rfq/model/types';
 import { cn } from '@/shared/lib/cn';
 import { usd } from '@/shared/lib/format';
 import { Button } from '@/shared/ui/Button';
+import { QuotationEmail } from '@/widgets/finalisation/QuotationEmail';
 import { QuotationSheet } from '@/widgets/finalisation/QuotationSheet';
 
 /** An empty value shows as a dash - neither hidden nor made up. */
@@ -34,6 +35,8 @@ export interface QuotationProps {
   rfqId: RfqId;
   reference: string;
   customer: string;
+  /** The mailbox the RFQ came in to - the quotation goes back out from it. */
+  mailbox: string;
   /** Already with its IMO, as the RFQ header shows it. */
   vessel: string;
   port: string;
@@ -52,9 +55,10 @@ export interface QuotationProps {
  *
  * The preview appears once a format is picked: until then it is not known
  * whose letterhead the document goes out on, and a document without a sender
- * is a draft easily taken for a finished one.
+ * is a draft easily taken for a finished one. The letter it goes out with
+ * comes first, the document after it - the order the customer meets them in.
  */
-export const Quotation = ({ rfqId, reference, ...document }: QuotationProps) => {
+export const Quotation = ({ rfqId, reference, mailbox, ...document }: QuotationProps) => {
   const [format, setFormat] = useState<QuotationFormat | null>(null);
   const download = useDownloadQuotation(rfqId, reference);
 
@@ -100,6 +104,16 @@ export const Quotation = ({ rfqId, reference, ...document }: QuotationProps) => 
         {downloadButton('pdf', 'Download PDF', 'primary')}
       </div>
 
+      {format !== null && (
+        <QuotationEmail
+          key={format}
+          format={format}
+          reference={reference}
+          customer={document.customer}
+          mailbox={mailbox}
+        />
+      )}
+
       {format !== null &&
         (isCustomerLayout(format) ? (
           <Document format={format} reference={reference} {...document} />
@@ -139,7 +153,7 @@ const Document = ({
   port,
   approvedAt,
   lines,
-}: Omit<QuotationProps, 'rfqId'> & { format: QuotationFormat }) => {
+}: Omit<QuotationProps, 'rfqId' | 'mailbox'> & { format: QuotationFormat }) => {
   const rows = finalRows(lines);
   const total = finalTotal(rows);
 

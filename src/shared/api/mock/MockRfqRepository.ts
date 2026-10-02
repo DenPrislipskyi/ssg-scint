@@ -29,6 +29,7 @@ const SAMPLE: RfqDetail = {
   port: 'Jebel Ali',
   receivedOn: '2026-09-11',
   subject: 'RFQ / MV ALMI GLOBE / Jebel Ali',
+  mailbox: 'supply@sevenseas.example.com',
   lines: [
     {
       line: 1,

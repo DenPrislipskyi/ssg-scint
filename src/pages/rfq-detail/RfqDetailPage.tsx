@@ -188,6 +188,7 @@ export const RfqDetailPage = ({ stage = RFQ_STAGE.matching }: RfqDetailPageProps
             rfqId={rfqId}
             reference={reference}
             customer={rfq.customerName}
+            mailbox={rfq.mailbox}
             vessel={vessel}
             port={rfq.port}
             approvedAt={rfq.approval?.approvedAt ?? ''}
